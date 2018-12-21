@@ -1,2 +1,2 @@
 # expressive-route-api-doc
-Generate doc skeleton from expressive routes
+Generate OpenAPI doc skeleton from expressive routes
