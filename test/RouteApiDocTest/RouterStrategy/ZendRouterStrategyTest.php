@@ -1,6 +1,6 @@
 <?php
 
-namespace RouteApiDocTest;
+namespace RouteApiDocTest\RouterStrategy;
 
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Server\MiddlewareInterface;
