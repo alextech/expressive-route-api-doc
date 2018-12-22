@@ -15,7 +15,8 @@
 
     },
     "require-dev": {
-        "phpunit/phpunit": "^7.5"
+        "phpunit/phpunit": "^7.5",
+        "ext-json": "*"
     },
     "autoload": {
         "psr-4": {

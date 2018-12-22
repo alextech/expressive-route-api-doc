@@ -7,6 +7,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use RouteApiDoc\RouterStrategy\ZendRouterStrategy;
 use Zend\Expressive\Application;
 use Zend\Expressive\MiddlewareFactory;
+use Zend\Expressive\Router\Route;
 use Zend\Expressive\Router\RouteCollector;
 use Zend\Expressive\Router\RouterInterface;
 use Zend\HttpHandlerRunner\RequestHandlerRunner;
@@ -18,27 +19,26 @@ class ZendRouterStrategyTest extends TestCase
     {
         $routerStrategy = new ZendRouterStrategy();
 
-        $factory = $this->prophesize(MiddlewareFactory::class);
-        $pipeline = $this->prophesize(MiddlewarePipeInterface::class);
-        $router = $this->prophesize(RouterInterface::class);
-        $runner = $this->prophesize(RequestHandlerRunner::class);
+        $route = new Route('/resource/:resource_id', $this->createMockMiddleware());
+        $parameters = $routerStrategy->extractParameters($route);
+        self::assertEquals(['resource_id'], $parameters);
 
-        $factory
-            ->prepare([])
-            ->willReturn($this->createMockMiddleware());
+        $route = new Route('/resource/:resource_id/sub_resource/:sub_id', $this->createMockMiddleware());
+        $parameters = $routerStrategy->extractParameters($route);
+        self::assertEquals(['resource_id', 'sub_id'], $parameters);
+    }
 
-        $app = new Application(
-            $factory->reveal(),
-            $pipeline->reveal(),
-            new RouteCollector($router->reveal()),
-            $runner->reveal()
-        );
+    public function testApplyOpenApiPlaceholders() : void {
+        $routerStrategy = new ZendRouterStrategy();
 
-        $app->get('/api/resources/:resource_id',[]);
+        $route = new Route('/resource/:resource_id', $this->createMockMiddleware());
+        $path = $routerStrategy->applyOpenApiPlaceholders($route);
+        self::assertEquals('/resource/{resource_id}', $path);
 
-        $routes = $routerStrategy->extractRoutesWithParameters($app);
+        $route = new Route('/resource/:resource_id/sub_resource/:sub_id', $this->createMockMiddleware());
+        $path = $routerStrategy->applyOpenApiPlaceholders($route);
+        self::assertEquals('/resource/{resource_id}/sub_resource/{sub_id}', $path);
 
-        self::assertEquals(['/api/resources/:resource_id' => ['resource_id']], $routes);
     }
 
     public function createMockMiddleware()
