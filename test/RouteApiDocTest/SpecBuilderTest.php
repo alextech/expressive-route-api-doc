@@ -53,7 +53,7 @@ class SpecBuilderTest extends TestCase
     }
 
     /**
-     * @dataProvider routeDataProvider
+     * @dataProvider pathDataProvider
      */
     public function testPathParametersForRoute(string $path, int $paramCount, array $paramNames) : void
     {
@@ -72,11 +72,30 @@ class SpecBuilderTest extends TestCase
         }
     }
 
-    public function routeDataProvider() : array
+    /** @dataProvider pathMethodDataProvider */
+    public function testSuggestResponseForMethodAndRoute(string $path, string $method, int $code) : void
+    {
+        $route = new Route($path, $this->createMockMiddleware());
+        $specBuilder = new SpecBuilder(new ZendRouterStrategy());
+
+        $responses = $specBuilder->suggestResponses($route, $method);
+
+        self::assertArrayHasKey($code, $responses);
+    }
+
+    public function pathDataProvider() : array
     {
         return [
-            ['/pets',        0,  []  ],
+            ['/pets',        0, []       ],
             ['/pets/:petId', 1, ['petId']],
+        ];
+    }
+
+    public function pathMethodDataProvider() : array
+    {
+        return [
+            ['/pets', 'get',  200],
+            ['/pets', 'post', 201],
         ];
     }
 }

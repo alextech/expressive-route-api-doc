@@ -28,18 +28,18 @@ class SpecBuilder
         $paths = [];
         foreach ($routes as $route) {
             foreach ($route->getAllowedMethods() as $method) {
+                $method = strtolower($method);
 
                 $openApiPath = $this->routerStrategy->applyOpenApiPlaceholders($route);
-                $paths[$openApiPath][strtolower($method)] = [
+                $paths[$openApiPath][$method] = [
                     'summary' => '',
                     'operationId' => '',
                     'tags' => [
                         '',
                     ],
 
-
                     'parameters' => $this->getParametersForRoute($route),
-//                    'responses' => $this->suggestResponses($method, $route),
+                    'responses' => $this->suggestResponses($route, $method),
                 ];
             }
         }
@@ -81,5 +81,45 @@ class SpecBuilder
         }
 
         return $parameters;
+    }
+
+    public function suggestResponses(Route $route, string $method) : array
+    {
+        switch ($method) {
+            case 'get':
+                $code = 200;
+                $response = [
+                    'content' => [
+                        'application/json' => [
+                            'schema' => [
+                                '$ref' => ''
+                            ],
+                        ],
+                    ],
+                ];
+
+                break;
+            case 'post':
+                $code = 201;
+                $response = [
+                    'description' => 'Null response',
+                ];
+
+                break;
+            default:
+
+                $code = 'default';
+                $response = [
+                    'application/json' => [
+                        'schema' => [
+                            '$ref' => ''
+                        ],
+                    ],
+                ];
+        }
+
+        return [
+            $code => $response,
+        ];
     }
 }
