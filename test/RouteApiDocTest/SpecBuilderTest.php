@@ -73,14 +73,22 @@ class SpecBuilderTest extends TestCase
     }
 
     /** @dataProvider pathMethodDataProvider */
-    public function testSuggestResponseForMethodAndRoute(string $path, string $method, int $code) : void
+    public function testSuggestResponseForMethodAndRoute(
+        string $path,
+        string $method,
+        int $code,
+        ?string $schemaNameSuffix
+    ) : void
     {
-        $route = new Route($path, $this->createMockMiddleware());
         $specBuilder = new SpecBuilder(new ZendRouterStrategy());
 
-        $responses = $specBuilder->suggestResponses($route, $method);
+        $responses = $specBuilder->suggestResponses($path, $method);
 
         self::assertArrayHasKey($code, $responses);
+        self::assertStringEndsWith(
+            $schemaNameSuffix,
+            $responses[$code]['content']['application/json']['schema']['$ref']
+        );
     }
 
     public function pathDataProvider() : array
@@ -94,8 +102,9 @@ class SpecBuilderTest extends TestCase
     public function pathMethodDataProvider() : array
     {
         return [
-            ['/pets', 'get',  200],
-            ['/pets', 'post', 201],
+            ['/pets', 'get',  200, '_Collection'],
+            ['/pets/{petId}', 'get',  200, ''],
+            ['/pets', 'post', 201, null],
         ];
     }
 }
