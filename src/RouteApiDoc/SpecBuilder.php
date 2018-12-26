@@ -5,12 +5,18 @@ namespace RouteApiDoc;
 use RouteApiDoc\RouterStrategy\ZendRouterStrategy;
 use Zend\Expressive\Router\Route;
 
+use Doctrine\Common\Inflector;
+
 class SpecBuilder
 {
     /**
      * @var ZendRouterStrategy
      */
     private $routerStrategy;
+
+    private $resources = [];
+
+    private $potentialCollections = [];
 
     /**
      * OpenApiWriter constructor.
@@ -39,7 +45,7 @@ class SpecBuilder
                     ],
 
                     'parameters' => $this->getParametersForRoute($route),
-                    'responses' => $this->suggestResponses($route, $method),
+                    'responses' => $this->suggestResponses($openApiPath, $method),
                 ];
             }
         }
@@ -59,6 +65,9 @@ class SpecBuilder
                 ]
             ],
             'paths' => $paths,
+            'components' => [
+                'schemas' => $this->getSchemas(),
+            ]
         ];
     }
 
@@ -83,7 +92,7 @@ class SpecBuilder
         return $parameters;
     }
 
-    public function suggestResponses(Route $route, string $method) : array
+    public function suggestResponses(string $path, string $method) : array
     {
         switch ($method) {
             case 'get':
@@ -92,7 +101,7 @@ class SpecBuilder
                     'content' => [
                         'application/json' => [
                             'schema' => [
-                                '$ref' => ''
+                                '$ref' => '#/components/schemas/' . $this->getSchemaNameFromPath($path),
                             ],
                         ],
                     ],
@@ -121,5 +130,66 @@ class SpecBuilder
         return [
             $code => $response,
         ];
+    }
+
+    private function getSchemaNameFromPath($path) : string
+    {
+        // if path ends in }, it is probably for a parameterized single entity
+        // if not, it is a collection
+        if (substr($path, strlen($path) - 1) === '}') {
+            $resourceEnd = strrpos($path, '{') - 2;
+            $resourceStart = strrpos($path, '/', -(strlen($path) - $resourceEnd))+1;
+            $resource = substr($path, $resourceStart, $resourceEnd + 1 - $resourceStart);
+
+            $potentialCollection = $resource = Inflector\Inflector::classify($resource);
+
+            $resource = Inflector\Inflector::singularize($resource);
+
+            $this->potentialCollections[$potentialCollection] = $resource;
+        } else {
+            $resource = substr($path, strrpos($path, '/') + 1);
+
+            $resource = Inflector\Inflector::classify($resource);
+        }
+
+        $this->resources[] = $resource;
+
+        return $resource;
+    }
+
+    private function getSchemas() : array
+    {
+        $schemas = [];
+
+        $collections = [];
+
+        foreach ($this->resources as $resource) {
+
+            if (array_key_exists($resource, $this->potentialCollections)) {
+                // do collections last
+                $collections[] = $resource;
+            } else {
+                $schemas[$resource] = [
+                    'required' => [
+                        'id', 'name'
+                    ],
+                    'properties' => [
+                        'id' => 'string', // uuid
+                        'name' => 'string'
+                    ]
+                ];
+            }
+        }
+
+        foreach ($collections as $collection) {
+            $schemas[$collection] = [
+                'type' => 'array',
+                'items' => [
+                    '$ref' => '#/components/schemas/' . $this->potentialCollections[$collection],
+                ]
+            ];
+        }
+
+        return $schemas;
     }
 }

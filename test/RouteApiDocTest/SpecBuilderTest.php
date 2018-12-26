@@ -85,10 +85,13 @@ class SpecBuilderTest extends TestCase
         $responses = $specBuilder->suggestResponses($path, $method);
 
         self::assertArrayHasKey($code, $responses);
-        self::assertStringEndsWith(
-            $schemaNameSuffix,
-            $responses[$code]['content']['application/json']['schema']['$ref']
-        );
+
+        if ($schemaNameSuffix !== null) {
+            self::assertEquals(
+                '#/components/schemas/'.$schemaNameSuffix,
+                $responses[$code]['content']['application/json']['schema']['$ref']
+            );
+        }
     }
 
     public function pathDataProvider() : array
@@ -102,8 +105,10 @@ class SpecBuilderTest extends TestCase
     public function pathMethodDataProvider() : array
     {
         return [
-            ['/pets', 'get',  200, '_Collection'],
-            ['/pets/{petId}', 'get',  200, ''],
+            ['/pets', 'get',  200, 'Pets'],
+            ['/pets/{petId}', 'get',  200, 'Pet'],
+            ['/pets/{petId}/toys', 'get',  200, 'Toys'],
+            ['/pets/{petId}/toys/{toyId}', 'get',  200, 'Toy'],
             ['/pets', 'post', 201, null],
         ];
     }
