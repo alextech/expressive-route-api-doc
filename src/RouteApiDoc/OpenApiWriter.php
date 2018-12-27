@@ -2,7 +2,82 @@
 
 namespace RouteApiDoc;
 
+use RouteApiDoc\RouterStrategy\ZendRouterStrategy;
+
 class OpenApiWriter
 {
+    /**
+     * @var SpecBuilder
+     */
+    private $specBuilder;
+
+    public function __construct(ZendRouterStrategy $routerStrategy)
+    {
+        $this->specBuilder = new SpecBuilder($routerStrategy);
+    }
+
+    public function writeSpecToFile(
+        \Zend\Expressive\Application $app,
+        string $file
+    ) : void
+    {
+        $spec = $this->specBuilder->generateSpec($app);
+
+        if (file_exists($file)) {
+            $existingSpec = json_decode(file_get_contents($file), true);
+            $spec = self::array_merge_recursive_distinct($spec, $existingSpec);
+        }
+
+        $result = file_put_contents($file, json_encode($spec, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+
+
+        if ($result === false) {
+            throw new \RuntimeException('Problem writing route spec to file "'.$file.'" ');
+        }
+    }
+
+    /**
+     * array_merge_recursive does indeed merge arrays, but it converts values with duplicate
+     * keys to arrays rather than overwriting the value in the first array with the duplicate
+     * value in the second array, as array_merge does. I.e., with array_merge_recursive,
+     * this happens (documented behavior):
+     *
+     * array_merge_recursive(array('key' => 'org value'), array('key' => 'new value'));
+     *     => array('key' => array('org value', 'new value'));
+     *
+     * array_merge_recursive_distinct does not change the datatypes of the values in the arrays.
+     * Matching keys' values in the second array overwrite those in the first array, as is the
+     * case with array_merge, i.e.:
+     *
+     * array_merge_recursive_distinct(array('key' => 'org value'), array('key' => 'new value'));
+     *     => array('key' => array('new value'));
+     *
+     * Parameters are passed by reference, though only for performance reasons. They're not
+     * altered by this function.
+     *
+     * @param array $array1
+     * @param array $array2
+     * @return array
+     * @author Daniel <daniel (at) danielsmedegaardbuus (dot) dk>
+     * @author Gabriel Sobrinho <gabriel (dot) sobrinho (at) gmail (dot) com>
+     */
+    private static function array_merge_recursive_distinct ( array &$array1, array &$array2 )
+    {
+        $merged = $array1;
+
+        foreach ( $array2 as $key => &$value )
+        {
+            if ( is_array ( $value ) && isset ( $merged [$key] ) && is_array ( $merged [$key] ) )
+            {
+                $merged [$key] = self::array_merge_recursive_distinct ( $merged [$key], $value );
+            }
+            else
+            {
+                $merged [$key] = $value;
+            }
+        }
+
+        return $merged;
+    }
 
 }

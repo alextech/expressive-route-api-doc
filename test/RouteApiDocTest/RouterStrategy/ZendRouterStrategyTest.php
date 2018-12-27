@@ -5,13 +5,7 @@ namespace RouteApiDocTest\RouterStrategy;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Server\MiddlewareInterface;
 use RouteApiDoc\RouterStrategy\ZendRouterStrategy;
-use Zend\Expressive\Application;
-use Zend\Expressive\MiddlewareFactory;
 use Zend\Expressive\Router\Route;
-use Zend\Expressive\Router\RouteCollector;
-use Zend\Expressive\Router\RouterInterface;
-use Zend\HttpHandlerRunner\RequestHandlerRunner;
-use Zend\Stratigility\MiddlewarePipeInterface;
 
 class ZendRouterStrategyTest extends TestCase
 {
