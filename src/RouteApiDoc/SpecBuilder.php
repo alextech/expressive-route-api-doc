@@ -37,16 +37,21 @@ class SpecBuilder
                 $method = strtolower($method);
 
                 $openApiPath = $this->routerStrategy->applyOpenApiPlaceholders($route);
-                $paths[$openApiPath][$method] = [
-                    'summary' => '',
+                $methodApi = [
+                    'summary'     => '',
                     'operationId' => '',
-                    'tags' => [
+                    'tags'        => [
                         '',
                     ],
-
-                    'parameters' => $this->getParametersForRoute($route),
-                    'responses' => $this->suggestResponses($openApiPath, $method),
                 ];
+
+                if ($method === 'get') {
+                    $methodApi['parameters'] = $this->getParametersForRoute($route);
+                }
+
+                $methodApi['responses'] = $this->suggestResponses($openApiPath, $method);
+
+                $paths[$openApiPath][$method] = $methodApi;
             }
         }
 
@@ -98,6 +103,7 @@ class SpecBuilder
             case 'get':
                 $code = 200;
                 $response = [
+                    'description' => '',
                     'content' => [
                         'application/json' => [
                             'schema' => [
@@ -174,9 +180,13 @@ class SpecBuilder
                         'id', 'name'
                     ],
                     'properties' => [
-                        'id' => 'string', // uuid
-                        'name' => 'string'
-                    ]
+                        'id' => [
+                            'type' => 'string', // uuid
+                        ],
+                        'name' => [
+                            'type' => 'string',
+                        ],
+                    ],
                 ];
             }
         }
