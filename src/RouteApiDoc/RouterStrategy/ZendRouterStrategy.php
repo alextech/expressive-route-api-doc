@@ -9,17 +9,6 @@ class ZendRouterStrategy
 
     /**
      * @param Route $route
-     * @return Route[]
-     */
-    public function extractParameters(Route $route) : array
-    {
-        preg_match_all('$(?<=/:)([^/]*)$', $route->getPath(), $paramMatches);
-
-        return $paramMatches[0];
-    }
-
-    /**
-     * @param Route $route
      * @return string
      */
     public function applyOpenApiPlaceholders(Route $route) : string

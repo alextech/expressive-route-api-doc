@@ -5,8 +5,6 @@ namespace RouteApiDoc;
 use RouteApiDoc\RouterStrategy\ZendRouterStrategy;
 use Zend\Expressive\Router\Route;
 
-use Doctrine\Common\Inflector;
-
 class SpecBuilder
 {
     /**
@@ -29,32 +27,6 @@ class SpecBuilder
 
     public function generateSpec(\Zend\Expressive\Application $app) : array
     {
-        $routes = $app->getRoutes();
-
-        $paths = [];
-        foreach ($routes as $route) {
-            foreach ($route->getAllowedMethods() as $method) {
-                $method = strtolower($method);
-
-                $openApiPath = $this->routerStrategy->applyOpenApiPlaceholders($route);
-                $methodApi = [
-                    'summary'     => '',
-                    'operationId' => '',
-                    'tags'        => [
-                        '',
-                    ],
-                ];
-
-                if ($method === 'get') {
-                    $methodApi['parameters'] = $this->getParametersForRoute($route);
-                }
-
-                $methodApi['responses'] = $this->suggestResponses($openApiPath, $method);
-
-                $paths[$openApiPath][$method] = $methodApi;
-            }
-        }
-
         return [
             'openapi' => '3.0.2',
             'info'=> [
@@ -69,16 +41,64 @@ class SpecBuilder
                     'url' => ''
                 ]
             ],
-            'paths' => $paths,
+            'paths' => $this->getApiPaths($app),
             'components' => [
                 'schemas' => $this->getSchemas(),
             ]
         ];
     }
 
-    public function getParametersForRoute(Route $route) : array
+    /**
+     * @param \Zend\Expressive\Application $app
+     *
+     * @return array
+     */
+    private function getApiPaths(\Zend\Expressive\Application $app): array
     {
-        $routeParameters = $this->routerStrategy->extractParameters($route);
+        $routes = $app->getRoutes();
+
+        $paths = [];
+        foreach ($routes as $route) {
+
+            $openApiPath = new OpenApiPath(
+                $this->routerStrategy->applyOpenApiPlaceholders($route)
+            );
+
+            foreach ($route->getAllowedMethods() as $method) {
+                $method = strtolower($method);
+
+
+                $methodApi = [
+                    'summary' => '',
+                    'operationId' => '',
+                    'tags' => [
+                        '',
+                    ],
+                ];
+
+                $parameters = $this->getParametersForPath($openApiPath);
+                if (count($parameters) > 0) {
+                    $methodApi['parameters']
+                        = $this->getParametersForPath($openApiPath);
+                }
+
+                $methodApi['responses'] = $this->suggestResponses($openApiPath, $method);
+
+                $paths[(string)$openApiPath][$method] = $methodApi;
+            }
+
+            $this->resources[] = $openApiPath->getSchemaName();
+
+            if (! $openApiPath->isCollection()) {
+                $this->potentialCollections[$openApiPath->getRelatedCollection()] = $openApiPath->getSchemaName();
+            }
+        }
+        return $paths;
+    }
+
+    public function getParametersForPath(OpenApiPath $path) : array
+    {
+        $routeParameters = $path->getParameters();
 
         $parameters = [];
 
@@ -94,10 +114,23 @@ class SpecBuilder
             ];
         }
 
+        if ($path->isCollection()) {
+            $parameters[] = [
+                'name'=> 'limit',
+                'in'=> 'query',
+                'description'=> 'How many items to return at one time (max 100)',
+                'required'=> false,
+                'schema'=> [
+                    'type'=> 'integer',
+                    'format'=> 'int32'
+                ]
+            ];
+        }
+
         return $parameters;
     }
 
-    public function suggestResponses(string $path, string $method) : array
+    public function suggestResponses(OpenApiPath $path, string $method) : array
     {
         switch ($method) {
             case 'get':
@@ -107,7 +140,7 @@ class SpecBuilder
                     'content' => [
                         'application/json' => [
                             'schema' => [
-                                '$ref' => '#/components/schemas/' . $this->getSchemaNameFromPath($path),
+                                '$ref' => '#/components/schemas/' . $path->getSchemaName(),
                             ],
                         ],
                     ],
@@ -136,31 +169,6 @@ class SpecBuilder
         return [
             $code => $response,
         ];
-    }
-
-    private function getSchemaNameFromPath($path) : string
-    {
-        // if path ends in }, it is probably for a parameterized single entity
-        // if not, it is a collection
-        if (substr($path, strlen($path) - 1) === '}') {
-            $resourceEnd = strrpos($path, '{') - 2;
-            $resourceStart = strrpos($path, '/', -(strlen($path) - $resourceEnd))+1;
-            $resource = substr($path, $resourceStart, $resourceEnd + 1 - $resourceStart);
-
-            $potentialCollection = $resource = Inflector\Inflector::classify($resource);
-
-            $resource = Inflector\Inflector::singularize($resource);
-
-            $this->potentialCollections[$potentialCollection] = $resource;
-        } else {
-            $resource = substr($path, strrpos($path, '/') + 1);
-
-            $resource = Inflector\Inflector::classify($resource);
-        }
-
-        $this->resources[] = $resource;
-
-        return $resource;
     }
 
     private function getSchemas() : array
@@ -199,6 +207,22 @@ class SpecBuilder
                 ]
             ];
         }
+
+        $schemas['Error'] = [
+            'required'=> [
+                'code',
+                'message'
+            ],
+            'properties'=> [
+                'code'=> [
+                'type'=> 'integer',
+                    'format'=> 'int32'
+                ],
+                'message'=> [
+                    'type'=> 'string'
+                ],
+            ],
+        ];
 
         return $schemas;
     }

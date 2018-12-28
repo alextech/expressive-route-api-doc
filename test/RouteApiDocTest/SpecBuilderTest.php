@@ -4,6 +4,7 @@ namespace RouteApiDocTest;
 
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Server\MiddlewareInterface;
+use RouteApiDoc\OpenApiPath;
 use RouteApiDoc\SpecBuilder;
 use RouteApiDoc\RouterStrategy\ZendRouterStrategy;
 use Zend\Expressive\Application;
@@ -54,25 +55,46 @@ class SpecBuilderTest extends TestCase
 
     /**
      * @dataProvider pathDataProvider
+     *
+     * @param string $path
+     * @param array  $routeParams
+     * @param array  $queryParams
      */
-    public function testPathParametersForRoute(string $path, int $paramCount, array $paramNames) : void
+    public function testPathParametersForRoute(string $path, array $routeParams, array $queryParams) : void
     {
-        $route = new Route($path, $this->createMockMiddleware());
-        $specBuilder = new SpecBuilder(new ZendRouterStrategy());
+        $routerStrategy = new ZendRouterStrategy();
 
-        $parameters = $specBuilder->getParametersForRoute($route);
+        $route = new OpenApiPath(
+            $routerStrategy->applyOpenApiPlaceholders(
+                new Route($path, $this->createMockMiddleware())
+            )
+        );
+        $specBuilder = new SpecBuilder($routerStrategy);
 
-        self::assertCount($paramCount, $parameters);
+        $parameters = $specBuilder->getParametersForPath($route);
 
-        self::assertEquals($paramNames, array_column($parameters, 'name'));
+        self::assertCount(count($routeParams) + count($queryParams),
+           $parameters);
 
-        foreach ($parameters as $parameter) {
-            // path parameters are quired as opposed to query parameters.
-            self::assertEquals($parameter['required'], true);
+        $offset = 0;
+        for ($i = 0, $iMax = count($routeParams); $i < $iMax; $i++) {
+            self::assertEquals($routeParams[$i], $parameters[$i]['name']);
+            self::assertTrue($parameters[$i]['required']);
+        }
+
+        $offset = $i;
+        for ($i = 0, $iMax = count($queryParams); $i < $iMax; $i++) {
+            self::assertEquals($queryParams[$i], $parameters[$i + $offset]['name']);
+            self::assertFalse($parameters[$i + $offset]['required']);
         }
     }
 
-    /** @dataProvider pathMethodDataProvider */
+    /** @dataProvider pathMethodDataProvider
+     * @param string      $path
+     * @param string      $method
+     * @param int         $code
+     * @param string|null $schemaNameSuffix
+     */
     public function testSuggestResponseForMethodAndRoute(
         string $path,
         string $method,
@@ -80,9 +102,15 @@ class SpecBuilderTest extends TestCase
         ?string $schemaNameSuffix
     ) : void
     {
-        $specBuilder = new SpecBuilder(new ZendRouterStrategy());
+        $routerStrategy = new ZendRouterStrategy();
+        $specBuilder = new SpecBuilder($routerStrategy);
 
-        $responses = $specBuilder->suggestResponses($path, $method);
+        $responses = $specBuilder->suggestResponses(
+            new OpenApiPath($routerStrategy->applyOpenApiPlaceholders(
+                new Route($path, $this->createMockMiddleware())
+            )),
+            $method
+        );
 
         self::assertArrayHasKey($code, $responses);
 
@@ -97,8 +125,8 @@ class SpecBuilderTest extends TestCase
     public function pathDataProvider() : array
     {
         return [
-            ['/pets',        0, []       ],
-            ['/pets/:petId', 1, ['petId']],
+            ['/pets',        [],        ['limit']],
+            ['/pets/:petId', ['petId'], []],
         ];
     }
 

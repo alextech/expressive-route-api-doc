@@ -18,6 +18,7 @@ class OpenApiWriter
         $this->specBuilder = new SpecBuilder($routerStrategy);
     }
 
+    // TODO option to write schemas to one file or multiple. One file would not need to write to a directory
     public function writeSpecToDirectory(
         \Zend\Expressive\Application $app,
         string $directory
