@@ -76,10 +76,10 @@ class SpecBuilder
                     ],
                 ];
 
-                $parameters = $this->getParametersForPath($openApiPath);
+                $parameters = $this->getParametersForPath($openApiPath, $method);
                 if (count($parameters) > 0) {
                     $methodApi['parameters']
-                        = $this->getParametersForPath($openApiPath);
+                        = $parameters;
                 }
 
                 $methodApi['responses'] = $this->suggestResponses($openApiPath, $method);
@@ -96,7 +96,7 @@ class SpecBuilder
         return $paths;
     }
 
-    public function getParametersForPath(OpenApiPath $path) : array
+    public function getParametersForPath(OpenApiPath $path, string $method = 'get') : array
     {
         $routeParameters = $path->getParameters();
 
@@ -114,7 +114,7 @@ class SpecBuilder
             ];
         }
 
-        if ($path->isCollection()) {
+        if ($method === 'get' && $path->isCollection()) {
             $parameters[] = [
                 'name'=> 'limit',
                 'in'=> 'query',
