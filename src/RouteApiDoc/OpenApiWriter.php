@@ -11,17 +11,30 @@ class OpenApiWriter
      */
     private $specBuilder;
 
+    private $docFileName = 'api_doc.json';
+
     public function __construct(ZendRouterStrategy $routerStrategy)
     {
         $this->specBuilder = new SpecBuilder($routerStrategy);
     }
 
-    public function writeSpecToFile(
+    public function writeSpecToDirectory(
         \Zend\Expressive\Application $app,
-        string $file
+        string $directory
     ) : void
     {
         $spec = $this->specBuilder->generateSpec($app);
+
+        if (substr_compare($directory, '/', strlen($directory) - 1, 1) !== 0) {
+            $directory .= '/';
+        }
+
+        $this->writeDoc($directory, $spec);
+    }
+
+    private function writeDoc(string $directory, array $spec) : void
+    {
+        $file = $directory . $this->docFileName;
 
         if (file_exists($file)) {
             $existingSpec = json_decode(file_get_contents($file), true);

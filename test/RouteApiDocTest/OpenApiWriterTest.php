@@ -21,7 +21,9 @@ class OpenApiWriterTest extends TestCase
      */
     private $app;
 
-    private $testSpecFilePath = __DIR__.'/out/spec_test.json';
+    private $testSpecDir = __DIR__.'/out';
+
+    private $docFile;
 
     public function setUp()
     {
@@ -44,28 +46,30 @@ class OpenApiWriterTest extends TestCase
         $app->get('/api/resources/:resource_id',[]);
 
 
+        $this->docFile = $this->testSpecDir.'/api_doc.json';
+
         $this->app = $app;
     }
 
     public function tearDown()
     {
-        unlink($this->testSpecFilePath);
+        unlink($this->docFile);
     }
 
     public function testCreateFile() : void
     {
         $writer = new OpenApiWriter(new ZendRouterStrategy());
-        $writer->writeSpecToFile($this->app, $this->testSpecFilePath);
+        $writer->writeSpecToDirectory($this->app, $this->testSpecDir);
 
-        self::assertFileExists($this->testSpecFilePath);
+        self::assertFileExists($this->docFile);
     }
 
     public function testKeepPropertyChanges() : void
     {
         $writer = new OpenApiWriter(new ZendRouterStrategy());
-        $writer->writeSpecToFile($this->app, $this->testSpecFilePath);
+        $writer->writeSpecToDirectory($this->app, $this->testSpecDir);
 
-        $specArray = json_decode(file_get_contents($this->testSpecFilePath), true);
+        $specArray = json_decode(file_get_contents($this->docFile), true);
 
         $specArray['paths']['/api/resources/{resource_id}']
             ['get']['summary'] = 'path get modified by test runner';
@@ -77,11 +81,11 @@ class OpenApiWriterTest extends TestCase
             JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT
         );
 
-        file_put_contents($this->testSpecFilePath, $modifiedSpec);
+        file_put_contents($this->docFile, $modifiedSpec);
 
-        $writer->writeSpecToFile($this->app, $this->testSpecFilePath);
+        $writer->writeSpecToDirectory($this->app, $this->testSpecDir);
 
-        self::assertJsonStringEqualsJsonFile($this->testSpecFilePath, $modifiedSpec);
+        self::assertJsonStringEqualsJsonFile($this->docFile, $modifiedSpec);
     }
 
     public function testMerge() : void
@@ -100,13 +104,13 @@ class OpenApiWriterTest extends TestCase
             JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT
         );
 
-        file_put_contents($this->testSpecFilePath, $modifiedSpec);
+        file_put_contents($this->docFile, $modifiedSpec);
 
         // execute
         $this->app->put('/api/pets', []);
 
         $writer = new OpenApiWriter(new ZendRouterStrategy());
-        $writer->writeSpecToFile($this->app, $this->testSpecFilePath);
+        $writer->writeSpecToDirectory($this->app, $this->testSpecDir);
 
         $specBuilder = new SpecBuilder(new ZendRouterStrategy());
         $specArray = $specBuilder->generateSpec($this->app);
@@ -117,7 +121,7 @@ class OpenApiWriterTest extends TestCase
                 [200]['description'] = 'Response description modified by test runner';
 
         // verify
-        self::assertJsonStringEqualsJsonFile($this->testSpecFilePath, json_encode($specArray, JSON_UNESCAPED_SLASHES));
+        self::assertJsonStringEqualsJsonFile($this->docFile, json_encode($specArray, JSON_UNESCAPED_SLASHES));
     }
 
     public function createMockMiddleware() : MiddlewareInterface
