@@ -22,6 +22,8 @@ class OpenApiPath
     /** @var bool */
     private $isCollection;
 
+    private $relatedResource;
+
     public function __construct(string $path)
     {
         $this->path = $path;
@@ -47,6 +49,8 @@ class OpenApiPath
             $resource = substr($path, strrpos($path, '/') + 1);
 
             $this->relatedCollection = $resource = Inflector\Inflector::classify($resource);
+
+            $this->relatedResource = Inflector\Inflector::singularize($resource);
 
             $this->isCollection = true;
         }
@@ -88,6 +92,15 @@ class OpenApiPath
         }
 
         return $this->relatedCollection;
+    }
+
+    public function getRelatedResource() : string
+    {
+        if (! $this->cached) {
+            $this->doPathAnalysis();
+        }
+
+        return $this->relatedResource;
     }
 
     public function __toString() : string

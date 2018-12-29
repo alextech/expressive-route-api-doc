@@ -35,14 +35,6 @@
         "responses": {
           "200": {
             "description": "Array of pets",
-            "headers": {
-              "x-next": {
-                "description": "A link to the next page of responses",
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
             "content": {
               "application/json": {
                 "schema": {
@@ -54,11 +46,22 @@
         }
       },
       "post": {
-        "summary": "Create a pet",
-        "operationId": "createPets",
+        "summary": "Add a new pet to the collection",
+        "operationId": "addPet",
         "tags": [
           "pets"
         ],
+        "requestBody": {
+          "description": "Pet to add to the collection",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewPet"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Null response"
@@ -122,6 +125,16 @@
             "format": "uuid"
           },
           "name": {
+            "type": "string"
+          }
+        }
+      },
+      "NewPet": {
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name" : {
             "type": "string"
           }
         }

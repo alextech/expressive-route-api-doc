@@ -15,6 +15,8 @@ class SpecBuilder
 
     private $potentialCollections = [];
 
+    private $newResources = [];
+
     /**
      * OpenApiWriter constructor.
      * @param ZendRouterStrategy $param
@@ -81,12 +83,27 @@ class SpecBuilder
                         = $parameters;
                 }
 
+                if ($method === 'post') {
+                    $methodApi['requestBody'] = [
+                        'description' => $openApiPath->getRelatedResource() . ' to add to the collection',
+                        'required' => true,
+                        'content' => [
+                            'application/json' => [
+                                'schema' => [
+                                    '$ref' => '#/components/schemas/New'.$openApiPath->getRelatedResource(),
+                                ],
+                            ],
+                        ],
+                    ];
+                    $this->newResources[] = 'New'.$openApiPath->getRelatedResource();
+                } else {
+                    $this->resources[] = $openApiPath->getSchemaName();
+                }
+
                 $methodApi['responses'] = $this->suggestResponses($openApiPath, $method);
 
                 $paths[(string)$openApiPath][$method] = $methodApi;
             }
-
-            $this->resources[] = $openApiPath->getSchemaName();
 
             if (! $openApiPath->isCollection()) {
                 $this->potentialCollections[$openApiPath->getRelatedCollection()] = $openApiPath->getSchemaName();
@@ -105,7 +122,7 @@ class SpecBuilder
 
             case 'post' :
 
-                return '';
+                return 'Add a new ' . strtolower($apiPath->getRelatedResource()) . ' to the collection';
             default:
 
             return '';
@@ -128,7 +145,7 @@ class SpecBuilder
                 break;
             case 'post':
 
-                return 'create' . $path->getSchemaName();
+                return 'add' . $path->getRelatedResource();
             default:
 
                 return '';
@@ -259,7 +276,8 @@ class SpecBuilder
             } else {
                 $schemas[$resource] = [
                     'required' => [
-                        'id', 'name'
+                        'id',
+                        'name'
                     ],
                     'properties' => [
                         'id' => [
@@ -272,6 +290,19 @@ class SpecBuilder
                     ],
                 ];
             }
+        }
+
+        foreach ($this->newResources as $resource) {
+            $schemas[$resource] = [
+                'required' => [
+                    'name'
+                ],
+                'properties' => [
+                    'name' => [
+                        'type' => 'string',
+                    ],
+                ],
+            ];
         }
 
         foreach ($collections as $collection) {
