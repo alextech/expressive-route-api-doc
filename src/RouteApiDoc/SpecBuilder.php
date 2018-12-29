@@ -3,7 +3,6 @@ namespace RouteApiDoc;
 
 
 use RouteApiDoc\RouterStrategy\ZendRouterStrategy;
-use Zend\Expressive\Router\Route;
 
 class SpecBuilder
 {
@@ -31,7 +30,7 @@ class SpecBuilder
             'openapi' => '3.0.2',
             'info'=> [
                 'version' => '1.0.0',
-                'title' => '',
+                'title' => 'Swagger OpenApi Skeleton',
                 'license' => [
                     'name' => '',
                 ]
@@ -69,10 +68,10 @@ class SpecBuilder
 
 
                 $methodApi = [
-                    'summary' => '',
-                    'operationId' => '',
+                    'summary' => $this->getSummary($openApiPath, $method),
+                    'operationId' => $this->generateOperationId($openApiPath, $method),
                     'tags' => [
-                        '',
+                        strtolower($openApiPath->getRelatedCollection()),
                     ],
                 ];
 
@@ -96,6 +95,48 @@ class SpecBuilder
         return $paths;
     }
 
+    private function getSummary(OpenApiPath $apiPath, string $method) : string
+    {
+        switch ($method) {
+            case 'get' :
+
+                return ($apiPath->isCollection() ? 'List all ' : 'Info for a specific ')
+                    . strtolower($apiPath->getSchemaName());
+
+            case 'post' :
+
+                return '';
+            default:
+
+            return '';
+        }
+    }
+
+    private function generateOperationId(OpenApiPath $path, string $method) : string
+    {
+        switch ($method) {
+            case 'get':
+                switch ($path->isCollection()) {
+                    case true:
+                        return 'list' . $path->getSchemaName();
+
+                    case false:
+                        $params = $path->getParameters();
+                        return 'show' . $path->getSchemaName() . 'By'.ucfirst(end($params));
+                }
+
+                break;
+            case 'post':
+
+                return 'create' . $path->getSchemaName();
+            default:
+
+                return '';
+        }
+
+        return '';
+    }
+
     public function getParametersForPath(OpenApiPath $path, string $method = 'get') : array
     {
         $routeParameters = $path->getParameters();
@@ -107,7 +148,7 @@ class SpecBuilder
                 'name' => $parameter,
                 'in'=> 'path',
                 'required' => true,
-                'description' => '',
+                'description' => 'The '.$parameter.' of the '.strtolower($path->getSchemaName()).' to retrieve',
                 'schema' => [
                     'type' => 'string',
                 ],
@@ -134,41 +175,74 @@ class SpecBuilder
     {
         switch ($method) {
             case 'get':
-                $code = 200;
-                $response = [
-                    'description' => '',
-                    'content' => [
-                        'application/json' => [
-                            'schema' => [
-                                '$ref' => '#/components/schemas/' . $path->getSchemaName(),
-                            ],
-                        ],
-                    ],
-                ];
+                switch ($path->isCollection()) {
+                    case true:
+                        return [
+                            200 =>
+                                [
+                                    'description' => 'Array of ' . strtolower($path->getSchemaName()),
+                                    'content' => [
+                                        'application/json' => [
+                                            'schema' => [
+                                                '$ref' => '#/components/schemas/' . $path->getSchemaName(),
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                        ];
+
+                    case false:
+                        return [
+                            200 =>
+                                [
+                                    'description' => 'Info for a specific '.strtolower($path->getSchemaName()),
+                                    'content' => [
+                                        'application/json' => [
+                                            'schema' => [
+                                                '$ref' => '#/components/schemas/' . $path->getSchemaName(),
+                                            ],
+                                        ],
+                                    ],
+                                ],
+
+                            404 =>
+                                [
+                                    'description'=> 'Not found',
+                                    'content'=> [
+                                        'application/json'=> [
+                                            'schema'=> [
+                                                '$ref'=> '#/components/schemas/Error'
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                        ];
+                }
 
                 break;
             case 'post':
-                $code = 201;
-                $response = [
-                    'description' => 'Null response',
-                ];
 
-                break;
+                return [
+                    201 =>
+                    [
+                        'description' => 'Null response',
+                    ]
+                ];
             default:
 
-                $code = 'default';
-                $response = [
-                    'application/json' => [
-                        'schema' => [
-                            '$ref' => ''
+                return [
+                    'default' =>
+                    [
+                        'application/json' => [
+                            'schema' => [
+                                '$ref' => ''
+                            ],
                         ],
-                    ],
+                    ]
                 ];
         }
 
-        return [
-            $code => $response,
-        ];
+        return [];
     }
 
     private function getSchemas() : array
@@ -189,7 +263,8 @@ class SpecBuilder
                     ],
                     'properties' => [
                         'id' => [
-                            'type' => 'string', // uuid
+                            'type' => 'string',
+                            'format' => 'uuid',
                         ],
                         'name' => [
                             'type' => 'string',
