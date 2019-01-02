@@ -21,7 +21,8 @@ class OpenApiWriter
     // TODO option to write schemas to one file or multiple. One file would not need to write to a directory
     public function writeSpecToDirectory(
         \Zend\Expressive\Application $app,
-        string $directory
+        string $directory,
+        bool $singleFile = true
     ) : void
     {
         $spec = $this->specBuilder->generateSpec($app);
@@ -30,12 +31,15 @@ class OpenApiWriter
             $directory .= '/';
         }
 
-        $this->writeDoc($directory, $spec);
+        if ($singleFile) {
+            $this->writeDoc($directory . $this->docFileName, $spec);
+        } else {
+            $this->writeDocAndSchemas($directory, $spec);
+        }
     }
 
-    private function writeDoc(string $directory, array $spec) : void
+    private function writeDoc(string $file, array $spec) : void
     {
-        $file = $directory . $this->docFileName;
 
         if (file_exists($file)) {
             $existingSpec = json_decode(file_get_contents($file), true);
@@ -48,6 +52,23 @@ class OpenApiWriter
         if ($result === false) {
             throw new \RuntimeException('Problem writing route spec to file "'.$file.'" ');
         }
+    }
+
+    private function writeDocAndSchemas(string $directory, array $spec) : void
+    {
+        $schemas = $spec['components']['schemas'];
+
+        foreach ($schemas as $schemaName => $schema) {
+            $fileName = strtolower($schemaName) . '.json';
+
+            $spec['components']['schemas'][$schemaName] = [
+                '$ref' => $fileName . '#/' . $schemaName,
+            ];
+
+            $this->writeDoc($directory . '/' . $fileName, [$schemaName => $schema]);
+        }
+
+        $this->writeDoc($directory . $this->docFileName, $spec);
     }
 
     /**

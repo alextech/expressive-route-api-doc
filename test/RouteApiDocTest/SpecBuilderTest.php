@@ -44,7 +44,7 @@ class SpecBuilderTest extends TestCase
         $spec = $specWriter->generateSpec($app);
         $spec = json_encode($spec);
 
-        self::assertJsonStringEqualsJsonFile(__DIR__.'/expectedSpec.json', $spec);
+        self::assertJsonStringEqualsJsonFile(__DIR__ . '/expectedCombinedSpec.json', $spec);
 
     }
 

@@ -25,6 +25,8 @@ class OpenApiWriterTest extends TestCase
 
     private $docFile;
 
+    private const SPEC_FILE_NAME = 'api_doc.json';
+
     public function setUp()
     {
         $factory = $this->prophesize(MiddlewareFactory::class);
@@ -46,17 +48,17 @@ class OpenApiWriterTest extends TestCase
         $app->get('/api/resources/:resource_id',[]);
 
 
-        $this->docFile = $this->testSpecDir.'/api_doc.json';
+        $this->docFile = $this->testSpecDir.'/'.self::SPEC_FILE_NAME;
 
         $this->app = $app;
     }
 
     public function tearDown()
     {
-        unlink($this->docFile);
+        array_map('unlink', glob($this->testSpecDir.'/*.json'));
     }
 
-    public function testCreateFile() : void
+    public function testSpecAllSchemasOneFile() : void
     {
         $writer = new OpenApiWriter(new ZendRouterStrategy());
         $writer->writeSpecToDirectory($this->app, $this->testSpecDir);
@@ -122,6 +124,17 @@ class OpenApiWriterTest extends TestCase
 
         // verify
         self::assertJsonStringEqualsJsonFile($this->docFile, json_encode($specArray, JSON_UNESCAPED_SLASHES));
+    }
+
+    public function testSchemaIndividualFiles() : void
+    {
+        $writer = new OpenApiWriter(new ZendRouterStrategy());
+        $writer->writeSpecToDirectory($this->app, $this->testSpecDir, false);
+
+        self::assertFileExists($this->docFile);
+        self::assertFileExists($this->testSpecDir.'/resource.json');
+        self::assertJsonFileEqualsJsonFile(__DIR__ . '/expectedSeparateSchemaSpec.json', $this->docFile);
+        self::assertJsonFileEqualsJsonFile(__DIR__ . '/expectedSeparateResourceSchema.json', $this->testSpecDir.'/resource.json');
     }
 
     public function createMockMiddleware() : MiddlewareInterface
