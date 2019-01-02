@@ -4,7 +4,7 @@ namespace RouteApiDoc\RouterStrategy;
 
 use Zend\Expressive\Router\Route;
 
-class ZendRouterStrategy
+class ZendRouterStrategy implements RouterStrategyInterface
 {
 
     /**

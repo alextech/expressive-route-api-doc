@@ -2,6 +2,7 @@
 
 namespace RouteApiDoc;
 
+use RouteApiDoc\RouterStrategy\RouterStrategyInterface;
 use RouteApiDoc\RouterStrategy\ZendRouterStrategy;
 
 class OpenApiWriter
@@ -13,7 +14,7 @@ class OpenApiWriter
 
     private $docFileName = 'api_doc.json';
 
-    public function __construct(ZendRouterStrategy $routerStrategy)
+    public function __construct(RouterStrategyInterface $routerStrategy)
     {
         $this->specBuilder = new SpecBuilder($routerStrategy);
     }

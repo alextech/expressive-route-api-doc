@@ -2,12 +2,13 @@
 namespace RouteApiDoc;
 
 
+use RouteApiDoc\RouterStrategy\RouterStrategyInterface;
 use RouteApiDoc\RouterStrategy\ZendRouterStrategy;
 
 class SpecBuilder
 {
     /**
-     * @var ZendRouterStrategy
+     * @var RouterStrategyInterface
      */
     private $routerStrategy;
 
@@ -19,9 +20,9 @@ class SpecBuilder
 
     /**
      * OpenApiWriter constructor.
-     * @param ZendRouterStrategy $param
+     * @param RouterStrategyInterface $param
      */
-    public function __construct(ZendRouterStrategy $param)
+    public function __construct(RouterStrategyInterface $param)
     {
         $this->routerStrategy = $param;
     }
