@@ -31,8 +31,8 @@
     },
     "extra" : {
         "zf": {
-            "component": "RouteApiDoc\\OpenApiWriter",
-            "config-provider": "RouteApiDoc\\ConfigProvider"
+            "component": "RouteOpenApiDoc\\OpenApiWriter",
+            "config-provider": "RouteOpenApiDoc\\ConfigProvider"
         }
     },
     "scripts": {
