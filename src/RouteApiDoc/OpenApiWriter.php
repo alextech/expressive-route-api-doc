@@ -12,6 +12,8 @@ class OpenApiWriter
      */
     private $specBuilder;
 
+    private $directory;
+
     private $docFileName = 'api_doc.json';
 
     public function __construct(RouterStrategyInterface $routerStrategy)
@@ -20,23 +22,37 @@ class OpenApiWriter
     }
 
     // TODO option to write schemas to one file or multiple. One file would not need to write to a directory
-    public function writeSpecToDirectory(
+
+    /**
+     * @param \Zend\Expressive\Application $app
+     * @param bool $singleFile
+     * @throws \Exception
+     */
+    public function writeSpec(
         \Zend\Expressive\Application $app,
-        string $directory,
         bool $singleFile = true
     ) : void
     {
+        if (! isset($this->directory) || $this->directory === null) {
+            throw new \Exception('Cannot create OpenApi spec: output directory is not set.');
+        }
+
         $spec = $this->specBuilder->generateSpec($app);
 
+        if ($singleFile) {
+            $this->writeDoc($this->directory . $this->docFileName, $spec);
+        } else {
+            $this->writeDocAndSchemas($this->directory, $spec);
+        }
+    }
+
+    public function setOutputDirectory(string $directory) : void
+    {
         if (substr_compare($directory, '/', strlen($directory) - 1, 1) !== 0) {
             $directory .= '/';
         }
 
-        if ($singleFile) {
-            $this->writeDoc($directory . $this->docFileName, $spec);
-        } else {
-            $this->writeDocAndSchemas($directory, $spec);
-        }
+        $this->directory = $directory;
     }
 
     private function writeDoc(string $file, array $spec) : void

@@ -58,18 +58,26 @@ class OpenApiWriterTest extends TestCase
         array_map('unlink', glob($this->testSpecDir.'/*.json'));
     }
 
+    /**
+     * @throws \Exception
+     */
     public function testSpecAllSchemasOneFile() : void
     {
         $writer = new OpenApiWriter(new ZendRouterStrategy());
-        $writer->writeSpecToDirectory($this->app, $this->testSpecDir);
+        $writer->setOutputDirectory($this->testSpecDir);
+        $writer->writeSpec($this->app);
 
         self::assertFileExists($this->docFile);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function testKeepPropertyChanges() : void
     {
         $writer = new OpenApiWriter(new ZendRouterStrategy());
-        $writer->writeSpecToDirectory($this->app, $this->testSpecDir);
+        $writer->setOutputDirectory($this->testSpecDir);
+        $writer->writeSpec($this->app);
 
         $specArray = json_decode(file_get_contents($this->docFile), true);
 
@@ -85,11 +93,14 @@ class OpenApiWriterTest extends TestCase
 
         file_put_contents($this->docFile, $modifiedSpec);
 
-        $writer->writeSpecToDirectory($this->app, $this->testSpecDir);
+        $writer->writeSpec($this->app, $this->testSpecDir);
 
         self::assertJsonStringEqualsJsonFile($this->docFile, $modifiedSpec);
     }
 
+    /**
+     * @throws \Exception
+     */
     public function testMerge() : void
     {
         // setup
@@ -112,7 +123,8 @@ class OpenApiWriterTest extends TestCase
         $this->app->put('/api/pets', []);
 
         $writer = new OpenApiWriter(new ZendRouterStrategy());
-        $writer->writeSpecToDirectory($this->app, $this->testSpecDir);
+        $writer->setOutputDirectory($this->testSpecDir);
+        $writer->writeSpec($this->app);
 
         $specBuilder = new SpecBuilder(new ZendRouterStrategy());
         $specArray = $specBuilder->generateSpec($this->app);
@@ -126,15 +138,30 @@ class OpenApiWriterTest extends TestCase
         self::assertJsonStringEqualsJsonFile($this->docFile, json_encode($specArray, JSON_UNESCAPED_SLASHES));
     }
 
+    /**
+     * @throws \Exception
+     */
     public function testSchemaIndividualFiles() : void
     {
         $writer = new OpenApiWriter(new ZendRouterStrategy());
-        $writer->writeSpecToDirectory($this->app, $this->testSpecDir, false);
+        $writer->setOutputDirectory($this->testSpecDir);
+        $writer->writeSpec($this->app, false);
 
         self::assertFileExists($this->docFile);
         self::assertFileExists($this->testSpecDir.'/resource.json');
         self::assertJsonFileEqualsJsonFile(__DIR__ . '/expectedSeparateSchemaSpec.json', $this->docFile);
         self::assertJsonFileEqualsJsonFile(__DIR__ . '/expectedSeparateResourceSchema.json', $this->testSpecDir.'/resource.json');
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function testThrowExceptionNoDirectorySet() : void
+    {
+        $writer = new OpenApiWriter(new ZendRouterStrategy());
+        $this->expectException(\Exception::class);
+
+        $writer->writeSpec($this->app);
     }
 
     public function createMockMiddleware() : MiddlewareInterface

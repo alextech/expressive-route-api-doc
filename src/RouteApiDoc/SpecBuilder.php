@@ -3,7 +3,6 @@ namespace RouteApiDoc;
 
 
 use RouteApiDoc\RouterStrategy\RouterStrategyInterface;
-use RouteApiDoc\RouterStrategy\ZendRouterStrategy;
 
 class SpecBuilder
 {
@@ -134,16 +133,13 @@ class SpecBuilder
     {
         switch ($method) {
             case 'get':
-                switch ($path->isCollection()) {
-                    case true:
-                        return 'list' . $path->getSchemaName();
-
-                    case false:
-                        $params = $path->getParameters();
-                        return 'show' . $path->getSchemaName() . 'By'.ucfirst(end($params));
+                if ($path->isCollection()) {
+                    return 'list' . $path->getSchemaName();
+                } else {
+                    $params = $path->getParameters();
+                    return 'show' . $path->getSchemaName() . 'By'.ucfirst(end($params));
                 }
 
-                break;
             case 'post':
 
                 return 'add' . $path->getRelatedResource();
@@ -151,8 +147,6 @@ class SpecBuilder
 
                 return '';
         }
-
-        return '';
     }
 
     public function getParametersForPath(OpenApiPath $path, string $method = 'get') : array
@@ -193,51 +187,47 @@ class SpecBuilder
     {
         switch ($method) {
             case 'get':
-                switch ($path->isCollection()) {
-                    case true:
-                        return [
-                            200 =>
-                                [
-                                    'description' => 'Array of ' . strtolower($path->getSchemaName()),
-                                    'content' => [
-                                        'application/json' => [
-                                            'schema' => [
-                                                '$ref' => '#/components/schemas/' . $path->getSchemaName(),
-                                            ],
+                if ($path->isCollection()) {
+                    return [
+                        200 =>
+                            [
+                                'description' => 'Array of ' . strtolower($path->getSchemaName()),
+                                'content' => [
+                                    'application/json' => [
+                                        'schema' => [
+                                            '$ref' => '#/components/schemas/' . $path->getSchemaName(),
                                         ],
                                     ],
                                 ],
-                        ];
+                            ],
+                    ];
+                } else {
+                    return [
+                        200 =>
+                            [
+                                'description' => 'Info for a specific ' . strtolower($path->getSchemaName()),
+                                'content' => [
+                                    'application/json' => [
+                                        'schema' => [
+                                            '$ref' => '#/components/schemas/' . $path->getSchemaName(),
+                                        ],
+                                    ],
+                                ],
+                            ],
 
-                    case false:
-                        return [
-                            200 =>
-                                [
-                                    'description' => 'Info for a specific '.strtolower($path->getSchemaName()),
-                                    'content' => [
-                                        'application/json' => [
-                                            'schema' => [
-                                                '$ref' => '#/components/schemas/' . $path->getSchemaName(),
-                                            ],
+                        404 =>
+                            [
+                                'description' => 'Not found',
+                                'content' => [
+                                    'application/json' => [
+                                        'schema' => [
+                                            '$ref' => '#/components/schemas/Error'
                                         ],
                                     ],
                                 ],
-
-                            404 =>
-                                [
-                                    'description'=> 'Not found',
-                                    'content'=> [
-                                        'application/json'=> [
-                                            'schema'=> [
-                                                '$ref'=> '#/components/schemas/Error'
-                                            ],
-                                        ],
-                                    ],
-                                ],
-                        ];
+                            ],
+                    ];
                 }
-
-                break;
             case 'post':
 
                 return [
@@ -259,8 +249,6 @@ class SpecBuilder
                     ]
                 ];
         }
-
-        return [];
     }
 
     private function getSchemas() : array
