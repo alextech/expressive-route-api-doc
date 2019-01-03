@@ -29,7 +29,7 @@ class OpenApiWriter
      */
     public function writeSpec(
         \Zend\Expressive\Application $app,
-        bool $singleFile = true
+        bool $singleFile = false
     ) : void
     {
         if (! isset($this->directory) || $this->directory === null) {

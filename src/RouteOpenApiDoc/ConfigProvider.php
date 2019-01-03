@@ -8,10 +8,12 @@ class ConfigProvider
 {
     public function __invoke() : array
     {
-        return $this->getDependencyConfig();
+        return [
+            'dependencies' => $this->getDependencies(),
+        ];
     }
 
-    public function getDependencyConfig() : array
+    public function getDependencies() : array
     {
         return [
             'invokables' => [

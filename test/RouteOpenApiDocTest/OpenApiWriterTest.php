@@ -93,7 +93,7 @@ class OpenApiWriterTest extends TestCase
 
         file_put_contents($this->docFile, $modifiedSpec);
 
-        $writer->writeSpec($this->app, $this->testSpecDir);
+        $writer->writeSpec($this->app);
 
         self::assertJsonStringEqualsJsonFile($this->docFile, $modifiedSpec);
     }
@@ -124,7 +124,7 @@ class OpenApiWriterTest extends TestCase
 
         $writer = new OpenApiWriter(new ZendRouterStrategy());
         $writer->setOutputDirectory($this->testSpecDir);
-        $writer->writeSpec($this->app);
+        $writer->writeSpec($this->app, true);
 
         $specBuilder = new SpecBuilder(new ZendRouterStrategy());
         $specArray = $specBuilder->generateSpec($this->app);
