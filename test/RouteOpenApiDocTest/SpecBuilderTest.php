@@ -1,12 +1,12 @@
 <?php
 
-namespace RouteApiDocTest;
+namespace RouteOpenApiDocTest;
 
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Server\MiddlewareInterface;
-use RouteApiDoc\OpenApiPath;
-use RouteApiDoc\SpecBuilder;
-use RouteApiDoc\RouterStrategy\ZendRouterStrategy;
+use RouteOpenApiDoc\OpenApiPath;
+use RouteOpenApiDoc\SpecBuilder;
+use RouteOpenApiDoc\RouterStrategy\ZendRouterStrategy;
 use Zend\Expressive\Application;
 use Zend\Expressive\MiddlewareFactory;
 use Zend\Expressive\Router\Route;

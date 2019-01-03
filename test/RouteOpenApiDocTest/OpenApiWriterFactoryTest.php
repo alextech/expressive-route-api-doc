@@ -4,10 +4,10 @@ namespace RouteApiDocTest;
 
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
-use RouteApiDoc\OpenApiWriter;
-use RouteApiDoc\OpenApiWriterFactory;
-use RouteApiDoc\RouterStrategy\RouterStrategyInterface;
-use RouteApiDoc\RouterStrategy\ZendRouterStrategy;
+use RouteOpenApiDoc\OpenApiWriter;
+use RouteOpenApiDoc\OpenApiWriterFactory;
+use RouteOpenApiDoc\RouterStrategy\RouterStrategyInterface;
+use RouteOpenApiDoc\RouterStrategy\ZendRouterStrategy;
 
 class OpenApiWriterFactoryTest extends TestCase
 {

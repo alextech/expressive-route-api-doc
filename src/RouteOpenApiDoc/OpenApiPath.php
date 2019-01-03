@@ -1,8 +1,6 @@
 <?php
 
-namespace RouteApiDoc;
-
-use Zend\Expressive\Router\Route;
+namespace RouteOpenApiDoc;
 
 use Doctrine\Common\Inflector;
 

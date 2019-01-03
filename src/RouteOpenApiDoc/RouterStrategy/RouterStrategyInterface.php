@@ -1,6 +1,6 @@
 <?php
 
-namespace RouteApiDoc\RouterStrategy;
+namespace RouteOpenApiDoc\RouterStrategy;
 
 use Zend\Expressive\Router\Route;
 

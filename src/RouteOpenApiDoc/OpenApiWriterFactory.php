@@ -1,6 +1,6 @@
 <?php
 
-namespace RouteApiDoc;
+namespace RouteOpenApiDoc;
 
 use Psr\Container\ContainerInterface;
 

@@ -1,8 +1,8 @@
 <?php
-namespace RouteApiDoc;
+namespace RouteOpenApiDoc;
 
 
-use RouteApiDoc\RouterStrategy\RouterStrategyInterface;
+use RouteOpenApiDoc\RouterStrategy\RouterStrategyInterface;
 
 class SpecBuilder
 {

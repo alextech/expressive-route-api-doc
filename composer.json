@@ -1,5 +1,5 @@
 {
-    "name": "alextech/expressive-route-api-doc",
+    "name": "alextech/expressive-route-openapi-doc",
     "description": "Generate OpenAPI schema doc from expressive routes",
     "type": "library",
     "authors": [
@@ -21,12 +21,12 @@
     },
     "autoload": {
         "psr-4": {
-            "RouteApiDoc\\": "src/RouteApiDoc"
+            "RouteOpenApiDoc\\": "src/RouteOpenApiDoc"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "RouteApiDocTest\\": "test/RouteApiDocTest/"
+            "RouteOpenApiDocTest\\": "test/RouteOpenApiDocTest/"
         }
     },
     "extra" : {

@@ -4,9 +4,9 @@ namespace RouteApiDocTest;
 
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Server\MiddlewareInterface;
-use RouteApiDoc\OpenApiWriter;
-use RouteApiDoc\RouterStrategy\ZendRouterStrategy;
-use RouteApiDoc\SpecBuilder;
+use RouteOpenApiDoc\OpenApiWriter;
+use RouteOpenApiDoc\RouterStrategy\ZendRouterStrategy;
+use RouteOpenApiDoc\SpecBuilder;
 use Zend\Expressive\Application;
 use Zend\Expressive\MiddlewareFactory;
 use Zend\Expressive\Router\RouteCollector;

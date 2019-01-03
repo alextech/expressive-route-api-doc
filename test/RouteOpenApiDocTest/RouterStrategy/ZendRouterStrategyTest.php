@@ -1,10 +1,10 @@
 <?php
 
-namespace RouteApiDocTest\RouterStrategy;
+namespace RouteOpenApiDocTest\RouterStrategy;
 
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Server\MiddlewareInterface;
-use RouteApiDoc\RouterStrategy\ZendRouterStrategy;
+use RouteOpenApiDoc\RouterStrategy\ZendRouterStrategy;
 use Zend\Expressive\Router\Route;
 
 class ZendRouterStrategyTest extends TestCase

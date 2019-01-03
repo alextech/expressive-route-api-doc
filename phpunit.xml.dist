@@ -8,7 +8,7 @@
             <!--<directory>./test/AppTest</directory>-->
         <!--</testsuite>-->
         <testsuite name="Expressive Routes OpenApi doc test">
-            <directory>./test/RouteApiDocTest</directory>
+            <directory>./test/RouteOpenApiDocTest</directory>
         </testsuite>
     </testsuites>
 

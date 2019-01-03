@@ -1,11 +1,9 @@
 <?php
 
-namespace RouteApiDocTest;
+namespace RouteOpenApiDocTest;
 
 use PHPUnit\Framework\TestCase;
-use Psr\Http\Server\MiddlewareInterface;
-use RouteApiDoc\OpenApiPath;
-use Zend\Expressive\Router\Route;
+use RouteOpenApiDoc\OpenApiPath;
 
 class PathTest extends TestCase
 {

@@ -1,8 +1,8 @@
 <?php
 
-namespace RouteApiDoc;
+namespace RouteOpenApiDoc;
 
-use RouteApiDoc\RouterStrategy\ZendRouterStrategy;
+use RouteOpenApiDoc\RouterStrategy\ZendRouterStrategy;
 
 class ConfigProvider
 {
