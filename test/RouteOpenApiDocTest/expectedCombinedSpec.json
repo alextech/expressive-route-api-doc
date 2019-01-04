@@ -38,7 +38,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Pets"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Pet"
+                  }
                 }
               }
             }
@@ -134,15 +137,9 @@
           "name"
         ],
         "properties": {
-          "name" : {
+          "name": {
             "type": "string"
           }
-        }
-      },
-      "Pets": {
-        "type": "array",
-        "items": {
-          "$ref": "#/components/schemas/Pet"
         }
       },
       "Error": {

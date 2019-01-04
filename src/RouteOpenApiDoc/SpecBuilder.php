@@ -13,8 +13,6 @@ class SpecBuilder
 
     private $resources = [];
 
-    private $potentialCollections = [];
-
     private $newResources = [];
 
     /**
@@ -96,7 +94,9 @@ class SpecBuilder
                         ],
                     ];
                     $this->newResources[] = 'New'.$openApiPath->getRelatedResource();
-                } else {
+                }
+
+                if (! $openApiPath->isCollection()) {
                     $this->resources[] = $openApiPath->getSchemaName();
                 }
 
@@ -105,9 +105,6 @@ class SpecBuilder
                 $paths[(string)$openApiPath][$method] = $methodApi;
             }
 
-            if (! $openApiPath->isCollection()) {
-                $this->potentialCollections[$openApiPath->getRelatedCollection()] = $openApiPath->getSchemaName();
-            }
         }
         return $paths;
     }
@@ -195,7 +192,11 @@ class SpecBuilder
                                 'content' => [
                                     'application/json' => [
                                         'schema' => [
-                                            '$ref' => '#/components/schemas/' . $path->getSchemaName(),
+                                            'type' => 'array',
+                                            'items' => [
+                                                '$ref' => '#/components/schemas/' . $path->getRelatedResource(),
+                                            ],
+
                                         ],
                                     ],
                                 ],
@@ -255,30 +256,22 @@ class SpecBuilder
     {
         $schemas = [];
 
-        $collections = [];
-
         foreach ($this->resources as $resource) {
-
-            if (array_key_exists($resource, $this->potentialCollections)) {
-                // do collections last
-                $collections[] = $resource;
-            } else {
-                $schemas[$resource] = [
-                    'required' => [
-                        'id',
-                        'name'
+            $schemas[$resource] = [
+                'required' => [
+                    'id',
+                    'name'
+                ],
+                'properties' => [
+                    'id' => [
+                        'type' => 'string',
+                        'format' => 'uuid',
                     ],
-                    'properties' => [
-                        'id' => [
-                            'type' => 'string',
-                            'format' => 'uuid',
-                        ],
-                        'name' => [
-                            'type' => 'string',
-                        ],
+                    'name' => [
+                        'type' => 'string',
                     ],
-                ];
-            }
+                ],
+            ];
         }
 
         foreach ($this->newResources as $resource) {
@@ -291,15 +284,6 @@ class SpecBuilder
                         'type' => 'string',
                     ],
                 ],
-            ];
-        }
-
-        foreach ($collections as $collection) {
-            $schemas[$collection] = [
-                'type' => 'array',
-                'items' => [
-                    '$ref' => '#/components/schemas/' . $this->potentialCollections[$collection],
-                ]
             ];
         }
 

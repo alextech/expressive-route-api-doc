@@ -113,13 +113,6 @@ class SpecBuilderTest extends TestCase
         );
 
         self::assertArrayHasKey($code, $responses);
-
-        if ($schemaNameSuffix !== null) {
-            self::assertEquals(
-                '#/components/schemas/'.$schemaNameSuffix,
-                $responses[$code]['content']['application/json']['schema']['$ref']
-            );
-        }
     }
 
     public function pathDataProvider() : array
