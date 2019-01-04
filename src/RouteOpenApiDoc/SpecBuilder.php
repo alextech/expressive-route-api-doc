@@ -129,6 +129,9 @@ class SpecBuilder
             case 'post':
 
                 return 'add' . $path->getRelatedResource();
+            case 'put':
+
+                return 'update' . $path->getSchemaName();
             default:
 
                 return '';
