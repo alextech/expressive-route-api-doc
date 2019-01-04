@@ -77,23 +77,12 @@ class SpecBuilder
 
                 $parameters = $this->getParametersForPath($openApiPath, $method);
                 if (count($parameters) > 0) {
-                    $methodApi['parameters']
-                        = $parameters;
+                    $methodApi['parameters'] = $parameters;
                 }
 
-                if ($method === 'post') {
-                    $methodApi['requestBody'] = [
-                        'description' => $openApiPath->getRelatedResource() . ' to add to the collection',
-                        'required' => true,
-                        'content' => [
-                            'application/json' => [
-                                'schema' => [
-                                    '$ref' => '#/components/schemas/New'.$openApiPath->getRelatedResource(),
-                                ],
-                            ],
-                        ],
-                    ];
-                    $this->newResources[] = 'New'.$openApiPath->getRelatedResource();
+                $requestBody = $this->suggestRequestBody($openApiPath, $method);
+                if (count($requestBody) > 0) {
+                    $methodApi['requestBody'] = $requestBody;
                 }
 
                 if (! $openApiPath->isCollection()) {
@@ -180,6 +169,46 @@ class SpecBuilder
         return $parameters;
     }
 
+    private function suggestRequestBody(OpenApiPath $path, string $method) : array
+    {
+
+        switch ($method) {
+            case 'get' :
+
+                return [];
+            case 'post':
+
+                $this->newResources[] = 'New'.$path->getRelatedResource();
+                return [
+                    'description' => $path->getRelatedResource() . ' to add to the collection',
+                    'required' => true,
+                    'content' => [
+                        'application/json' => [
+                            'schema' => [
+                                '$ref' => '#/components/schemas/New'.$path->getRelatedResource(),
+                            ],
+                        ],
+                    ],
+                ];
+            case 'put':
+
+                return [
+                    'description' => $path->getRelatedResource() . ' to update',
+                    'required' => true,
+                    'content' => [
+                        'application/json' => [
+                            'schema' => [
+                                '$ref' => '#/components/schemas/'.$path->getRelatedResource(),
+                            ],
+                        ],
+                    ],
+                ];
+            default:
+
+                return [];
+        }
+    }
+
     public function suggestResponses(OpenApiPath $path, string $method) : array
     {
         switch ($method) {
@@ -233,22 +262,34 @@ class SpecBuilder
 
                 return [
                     201 =>
-                    [
-                        'description' => 'Null response',
-                    ]
+                        [
+                            'description' => 'Null response',
+                        ]
+                ];
+
+            case 'put':
+
+                return [
+                    201 =>
+                        [
+                            'description' => $path->getRelatedResource().' replacement update accepted',
+                        ],
+                    400 =>
+                        [
+                            'description' => 'Invalid ID supplied',
+                        ],
+                    404 =>
+                        [
+                            'description' => $path->getRelatedResource().' not found',
+                        ],
+                    405 =>
+                        [
+                            'description' => 'Validation exception',
+                        ],
                 ];
             default:
 
-                return [
-                    'default' =>
-                    [
-                        'application/json' => [
-                            'schema' => [
-                                '$ref' => ''
-                            ],
-                        ],
-                    ]
-                ];
+                return [];
         }
     }
 
