@@ -39,7 +39,7 @@ class SpecBuilderTest extends TestCase
         $app->get('/pets', []);
         $app->post('/pets', []);
         $app->route('/pets/:petId', [], ['GET']);
-        $app->put('/pets', []);
+        $app->put('/pets/:petId', []);
 
         $specWriter = new SpecBuilder(new ZendRouterStrategy());
         $spec = $specWriter->generateSpec($app);

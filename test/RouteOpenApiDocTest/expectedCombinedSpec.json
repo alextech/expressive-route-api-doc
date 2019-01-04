@@ -70,38 +70,6 @@
             "description": "Null response"
           }
         }
-      },
-      "put": {
-        "summary": "",
-        "operationId": "",
-        "tags": [
-          "pets"
-        ],
-        "requestBody": {
-          "description": "Pet to update",
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Pet"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Pet replacement update accepted"
-          },
-          "400": {
-            "description": "Invalid ID supplied"
-          },
-          "404": {
-            "description": "Pet not found"
-          },
-          "405": {
-            "description": "Validation exception"
-          }
-        }
       }
     },
     "/pets/{petId}": {
@@ -142,6 +110,49 @@
                 }
               }
             }
+          }
+        }
+      },
+      "put": {
+        "summary": "",
+        "operationId": "",
+        "tags": [
+          "pets"
+        ],
+        "parameters": [
+          {
+            "name": "petId",
+            "in": "path",
+            "required": true,
+            "description": "The petId of the pet to retrieve",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Pet to update",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewPet"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Pet replacement update accepted"
+          },
+          "400": {
+            "description": "Invalid ID supplied"
+          },
+          "404": {
+            "description": "Pet not found"
+          },
+          "405": {
+            "description": "Validation exception"
           }
         }
       }

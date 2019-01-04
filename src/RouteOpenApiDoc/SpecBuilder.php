@@ -193,12 +193,12 @@ class SpecBuilder
             case 'put':
 
                 return [
-                    'description' => $path->getRelatedResource() . ' to update',
+                    'description' => $path->getSchemaName() . ' to update',
                     'required' => true,
                     'content' => [
                         'application/json' => [
                             'schema' => [
-                                '$ref' => '#/components/schemas/'.$path->getRelatedResource(),
+                                '$ref' => '#/components/schemas/New'.$path->getSchemaName(),
                             ],
                         ],
                     ],
@@ -272,7 +272,7 @@ class SpecBuilder
                 return [
                     201 =>
                         [
-                            'description' => $path->getRelatedResource().' replacement update accepted',
+                            'description' => $path->getSchemaName().' replacement update accepted',
                         ],
                     400 =>
                         [
@@ -280,7 +280,7 @@ class SpecBuilder
                         ],
                     404 =>
                         [
-                            'description' => $path->getRelatedResource().' not found',
+                            'description' => $path->getSchemaName().' not found',
                         ],
                     405 =>
                         [
