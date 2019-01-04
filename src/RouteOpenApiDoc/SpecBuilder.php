@@ -87,6 +87,8 @@ class SpecBuilder
 
                 if (! $openApiPath->isCollection()) {
                     $this->resources[] = $openApiPath->getSchemaName();
+                } else {
+                    $this->resources[] = $openApiPath->getRelatedResource();
                 }
 
                 $methodApi['responses'] = $this->suggestResponses($openApiPath, $method);

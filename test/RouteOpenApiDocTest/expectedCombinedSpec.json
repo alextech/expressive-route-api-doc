@@ -115,7 +115,7 @@
       },
       "put": {
         "summary": "",
-        "operationId": "",
+        "operationId": "updatePet",
         "tags": [
           "pets"
         ],
@@ -156,11 +156,62 @@
           }
         }
       }
+    },
+    "/no_single": {
+      "get": {
+        "summary": "List all nosingle",
+        "operationId": "listNoSingle",
+        "tags": [
+          "nosingle"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "How many items to return at one time (max 100)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array of nosingle",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NoSingle"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
       "Pet": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "NoSingle": {
         "required": [
           "id",
           "name"
