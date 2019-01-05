@@ -155,6 +155,35 @@
             "description": "Validation exception"
           }
         }
+      },
+      "delete" : {
+        "summary": "Delete specified Pet",
+        "operationId": "deletePet",
+        "tags": [
+          "pets"
+        ],
+        "parameters": [
+          {
+            "name": "petId",
+            "in": "path",
+            "required": true,
+            "description": "The petId of the pet to delete",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pet deleted successfully"
+          },
+          "400": {
+            "description": "Invalid ID supplied"
+          },
+          "404": {
+            "description": "Pet not found"
+          }
+        }
       }
     },
     "/no_single": {
