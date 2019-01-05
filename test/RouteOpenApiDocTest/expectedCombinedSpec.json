@@ -114,7 +114,7 @@
         }
       },
       "put": {
-        "summary": "",
+        "summary": "Update specified Pet",
         "operationId": "updatePet",
         "tags": [
           "pets"
@@ -124,7 +124,7 @@
             "name": "petId",
             "in": "path",
             "required": true,
-            "description": "The petId of the pet to retrieve",
+            "description": "The petId of the pet to update",
             "schema": {
               "type": "string"
             }

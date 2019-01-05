@@ -55,67 +55,67 @@ class SpecBuilderTest extends TestCase
         return $this->prophesize(MiddlewareInterface::class)->reveal();
     }
 
-    /**
-     * @dataProvider pathDataProvider
-     *
-     * @param string $path
-     * @param array  $routeParams
-     * @param array  $queryParams
-     */
-    public function testPathParametersForRoute(string $path, array $routeParams, array $queryParams) : void
-    {
-        $routerStrategy = new ZendRouterStrategy();
+//    /**
+//     * @dataProvider pathDataProvider
+//     *
+//     * @param string $path
+//     * @param array  $routeParams
+//     * @param array  $queryParams
+//     */
+//    public function testPathParametersForRoute(string $path, array $routeParams, array $queryParams) : void
+//    {
+//        $routerStrategy = new ZendRouterStrategy();
+//
+//        $route = new OpenApiPath(
+//            $routerStrategy->applyOpenApiPlaceholders(
+//                new Route($path, $this->createMockMiddleware())
+//            )
+//        );
+//        $specBuilder = new SpecBuilder($routerStrategy);
+//
+//        $parameters = $specBuilder->getParametersForPath($route);
+//
+//        self::assertCount(count($routeParams) + count($queryParams),
+//           $parameters);
+//
+//        $offset = 0;
+//        for ($i = 0, $iMax = count($routeParams); $i < $iMax; $i++) {
+//            self::assertEquals($routeParams[$i], $parameters[$i]['name']);
+//            self::assertTrue($parameters[$i]['required']);
+//        }
+//
+//        $offset = $i;
+//        for ($i = 0, $iMax = count($queryParams); $i < $iMax; $i++) {
+//            self::assertEquals($queryParams[$i], $parameters[$i + $offset]['name']);
+//            self::assertFalse($parameters[$i + $offset]['required']);
+//        }
+//    }
 
-        $route = new OpenApiPath(
-            $routerStrategy->applyOpenApiPlaceholders(
-                new Route($path, $this->createMockMiddleware())
-            )
-        );
-        $specBuilder = new SpecBuilder($routerStrategy);
-
-        $parameters = $specBuilder->getParametersForPath($route);
-
-        self::assertCount(count($routeParams) + count($queryParams),
-           $parameters);
-
-        $offset = 0;
-        for ($i = 0, $iMax = count($routeParams); $i < $iMax; $i++) {
-            self::assertEquals($routeParams[$i], $parameters[$i]['name']);
-            self::assertTrue($parameters[$i]['required']);
-        }
-
-        $offset = $i;
-        for ($i = 0, $iMax = count($queryParams); $i < $iMax; $i++) {
-            self::assertEquals($queryParams[$i], $parameters[$i + $offset]['name']);
-            self::assertFalse($parameters[$i + $offset]['required']);
-        }
-    }
-
-    /** @dataProvider pathMethodDataProvider
-     * @param string      $path
-     * @param string      $method
-     * @param int         $code
-     * @param string|null $schemaNameSuffix
-     */
-    public function testSuggestResponseForMethodAndRoute(
-        string $path,
-        string $method,
-        int $code,
-        ?string $schemaNameSuffix
-    ) : void
-    {
-        $routerStrategy = new ZendRouterStrategy();
-        $specBuilder = new SpecBuilder($routerStrategy);
-
-        $responses = $specBuilder->suggestResponses(
-            new OpenApiPath($routerStrategy->applyOpenApiPlaceholders(
-                new Route($path, $this->createMockMiddleware())
-            )),
-            $method
-        );
-
-        self::assertArrayHasKey($code, $responses);
-    }
+//    /** @dataProvider pathMethodDataProvider
+//     * @param string      $path
+//     * @param string      $method
+//     * @param int         $code
+//     * @param string|null $schemaNameSuffix
+//     */
+//    public function testSuggestResponseForMethodAndRoute(
+//        string $path,
+//        string $method,
+//        int $code,
+//        ?string $schemaNameSuffix
+//    ) : void
+//    {
+//        $routerStrategy = new ZendRouterStrategy();
+//        $specBuilder = new SpecBuilder($routerStrategy);
+//
+//        $responses = $specBuilder->suggestResponses(
+//            new OpenApiPath($routerStrategy->applyOpenApiPlaceholders(
+//                new Route($path, $this->createMockMiddleware())
+//            )),
+//            $method
+//        );
+//
+//        self::assertArrayHasKey($code, $responses);
+//    }
 
     public function pathDataProvider() : array
     {

@@ -2,6 +2,11 @@
 namespace RouteOpenApiDoc;
 
 
+use RouteOpenApiDoc\PathVisitor\DeleteVisitor;
+use RouteOpenApiDoc\PathVisitor\GetVisitor;
+use RouteOpenApiDoc\PathVisitor\PathVisitorInterface;
+use RouteOpenApiDoc\PathVisitor\PostVisitor;
+use RouteOpenApiDoc\PathVisitor\PutVisitor;
 use RouteOpenApiDoc\RouterStrategy\RouterStrategyInterface;
 
 class SpecBuilder
@@ -15,6 +20,8 @@ class SpecBuilder
 
     private $newResources = [];
 
+    private $visitors;
+
     /**
      * OpenApiWriter constructor.
      * @param RouterStrategyInterface $param
@@ -26,6 +33,13 @@ class SpecBuilder
 
     public function generateSpec(\Zend\Expressive\Application $app) : array
     {
+        $this->visitors = [
+            'get' => GetVisitor::class,
+            'post' => PostVisitor::class,
+            'put' => PutVisitor::class,
+            'delete' => DeleteVisitor::class,
+        ];
+
         return [
             'openapi' => '3.0.2',
             'info'=> [
@@ -65,22 +79,24 @@ class SpecBuilder
 
             foreach ($route->getAllowedMethods() as $method) {
                 $method = strtolower($method);
+                /** @var PathVisitorInterface $visitor */
+                $visitor = new $this->visitors[$method];
 
 
                 $methodApi = [
-                    'summary' => $this->getSummary($openApiPath, $method),
-                    'operationId' => $this->generateOperationId($openApiPath, $method),
+                    'summary' => $visitor->getSummary($openApiPath),
+                    'operationId' => $visitor->generateOperationId($openApiPath),
                     'tags' => [
                         strtolower($openApiPath->getRelatedCollection()),
                     ],
                 ];
 
-                $parameters = $this->getParametersForPath($openApiPath, $method);
+                $parameters = $visitor->getParameters($openApiPath);
                 if (count($parameters) > 0) {
                     $methodApi['parameters'] = $parameters;
                 }
 
-                $requestBody = $this->suggestRequestBody($openApiPath, $method);
+                $requestBody = $visitor->suggestRequestBody($openApiPath);
                 if (count($requestBody) > 0) {
                     $methodApi['requestBody'] = $requestBody;
                 }
@@ -91,211 +107,15 @@ class SpecBuilder
                     $this->resources[] = $openApiPath->getRelatedResource();
                 }
 
-                $methodApi['responses'] = $this->suggestResponses($openApiPath, $method);
+                $methodApi['responses'] = $visitor->suggestResponses($openApiPath);
 
                 $paths[(string)$openApiPath][$method] = $methodApi;
+
+                $this->newResources = array_merge($this->newResources, $visitor->getNewResources());
             }
 
         }
         return $paths;
-    }
-
-    private function getSummary(OpenApiPath $apiPath, string $method) : string
-    {
-        switch ($method) {
-            case 'get' :
-
-                return ($apiPath->isCollection() ? 'List all ' : 'Info for a specific ')
-                    . strtolower($apiPath->getSchemaName());
-
-            case 'post' :
-
-                return 'Add a new ' . strtolower($apiPath->getRelatedResource()) . ' to the collection';
-            default:
-
-            return '';
-        }
-    }
-
-    private function generateOperationId(OpenApiPath $path, string $method) : string
-    {
-        switch ($method) {
-            case 'get':
-                if ($path->isCollection()) {
-                    return 'list' . $path->getSchemaName();
-                } else {
-                    $params = $path->getParameters();
-                    return 'show' . $path->getSchemaName() . 'By'.ucfirst(end($params));
-                }
-
-            case 'post':
-
-                return 'add' . $path->getRelatedResource();
-            case 'put':
-
-                return 'update' . $path->getSchemaName();
-            default:
-
-                return '';
-        }
-    }
-
-    public function getParametersForPath(OpenApiPath $path, string $method = 'get') : array
-    {
-        $routeParameters = $path->getParameters();
-
-        $parameters = [];
-
-        foreach ($routeParameters as $parameter) {
-            $parameters[] = [
-                'name' => $parameter,
-                'in'=> 'path',
-                'required' => true,
-                'description' => 'The '.$parameter.' of the '.strtolower($path->getSchemaName()).' to retrieve',
-                'schema' => [
-                    'type' => 'string',
-                ],
-            ];
-        }
-
-        if ($method === 'get' && $path->isCollection()) {
-            $parameters[] = [
-                'name'=> 'limit',
-                'in'=> 'query',
-                'description'=> 'How many items to return at one time (max 100)',
-                'required'=> false,
-                'schema'=> [
-                    'type'=> 'integer',
-                    'format'=> 'int32'
-                ]
-            ];
-        }
-
-        return $parameters;
-    }
-
-    private function suggestRequestBody(OpenApiPath $path, string $method) : array
-    {
-
-        switch ($method) {
-            case 'get' :
-
-                return [];
-            case 'post':
-
-                $this->newResources[] = 'New'.$path->getRelatedResource();
-                return [
-                    'description' => $path->getRelatedResource() . ' to add to the collection',
-                    'required' => true,
-                    'content' => [
-                        'application/json' => [
-                            'schema' => [
-                                '$ref' => '#/components/schemas/New'.$path->getRelatedResource(),
-                            ],
-                        ],
-                    ],
-                ];
-            case 'put':
-
-                return [
-                    'description' => $path->getSchemaName() . ' to update',
-                    'required' => true,
-                    'content' => [
-                        'application/json' => [
-                            'schema' => [
-                                '$ref' => '#/components/schemas/New'.$path->getSchemaName(),
-                            ],
-                        ],
-                    ],
-                ];
-            default:
-
-                return [];
-        }
-    }
-
-    public function suggestResponses(OpenApiPath $path, string $method) : array
-    {
-        switch ($method) {
-            case 'get':
-                if ($path->isCollection()) {
-                    return [
-                        200 =>
-                            [
-                                'description' => 'Array of ' . strtolower($path->getSchemaName()),
-                                'content' => [
-                                    'application/json' => [
-                                        'schema' => [
-                                            'type' => 'array',
-                                            'items' => [
-                                                '$ref' => '#/components/schemas/' . $path->getRelatedResource(),
-                                            ],
-
-                                        ],
-                                    ],
-                                ],
-                            ],
-                    ];
-                } else {
-                    return [
-                        200 =>
-                            [
-                                'description' => 'Info for a specific ' . strtolower($path->getSchemaName()),
-                                'content' => [
-                                    'application/json' => [
-                                        'schema' => [
-                                            '$ref' => '#/components/schemas/' . $path->getSchemaName(),
-                                        ],
-                                    ],
-                                ],
-                            ],
-
-                        404 =>
-                            [
-                                'description' => 'Not found',
-                                'content' => [
-                                    'application/json' => [
-                                        'schema' => [
-                                            '$ref' => '#/components/schemas/Error'
-                                        ],
-                                    ],
-                                ],
-                            ],
-                    ];
-                }
-            case 'post':
-
-                return [
-                    201 =>
-                        [
-                            'description' => 'Null response',
-                        ]
-                ];
-
-            case 'put':
-
-                return [
-                    201 =>
-                        [
-                            'description' => $path->getSchemaName().' replacement update accepted',
-                        ],
-                    400 =>
-                        [
-                            'description' => 'Invalid ID supplied',
-                        ],
-                    404 =>
-                        [
-                            'description' => $path->getSchemaName().' not found',
-                        ],
-                    405 =>
-                        [
-                            'description' => 'Validation exception',
-                        ],
-                ];
-            default:
-
-                return [];
-        }
     }
 
     private function getSchemas() : array
