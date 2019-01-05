@@ -4,6 +4,7 @@ namespace RouteOpenApiDoc\PathVisitor;
 
 
 use RouteOpenApiDoc\OpenApiPath;
+use RouteOpenApiDoc\Resource;
 
 class GetVisitor extends AbstractVisitor implements PathVisitorInterface
 {
@@ -50,6 +51,8 @@ class GetVisitor extends AbstractVisitor implements PathVisitorInterface
     public function suggestResponses(OpenApiPath $path): array
     {
         if ($path->isCollection()) {
+            $this->resources[] = new Resource($path->getRelatedResource(), false);
+
             return [
                 200 =>
                     [
@@ -68,6 +71,8 @@ class GetVisitor extends AbstractVisitor implements PathVisitorInterface
                     ],
             ];
         } else {
+            $this->resources[] = new Resource($path->getSchemaName(), false);
+
             return [
                 200 =>
                     [

@@ -221,6 +221,51 @@
           }
         }
       }
+    },
+    "/put_no_post/{id}": {
+      "put": {
+        "summary": "Update specified PutNoPost",
+        "operationId": "updatePutNoPost",
+        "tags": [
+          "putnopost"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The id of the putnopost to update",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "PutNoPost to update",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewPutNoPost"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "PutNoPost replacement update accepted"
+          },
+          "400": {
+            "description": "Invalid ID supplied"
+          },
+          "404": {
+            "description": "PutNoPost not found"
+          },
+          "405": {
+            "description": "Validation exception"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -235,6 +280,16 @@
             "type": "string",
             "format": "uuid"
           },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "NewPet": {
+        "required": [
+          "name"
+        ],
+        "properties": {
           "name": {
             "type": "string"
           }
@@ -255,7 +310,7 @@
           }
         }
       },
-      "NewPet": {
+      "NewPutNoPost": {
         "required": [
           "name"
         ],

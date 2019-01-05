@@ -3,11 +3,13 @@
 namespace RouteOpenApiDoc\PathVisitor;
 
 use RouteOpenApiDoc\OpenApiPath;
+use RouteOpenApiDoc\Resource;
 
 abstract class AbstractVisitor implements PathVisitorInterface
 {
 
-    protected $newResources = [];
+    /** @var Resource[] */
+    protected $resources = [];
 
     public function getParameters(OpenApiPath $path): array
     {
@@ -30,8 +32,11 @@ abstract class AbstractVisitor implements PathVisitorInterface
         return $parameters;
     }
 
-    public function getNewResources() : array
+    /**
+     * @return Resource[]
+     */
+    public function getResources() : array
     {
-        return $this->newResources;
+        return $this->resources;
     }
 }

@@ -29,6 +29,7 @@ class SpecBuilderTest extends TestCase
         $app->get('/no_single', []);
         $app->delete('/pets/:petId', []);
         $app->route('/pets', [], ['OPTIONS']); // to be ignored
+        $app->put('/put_no_post/:id', []);
 
         $specBuilder = new SpecBuilder(new ZendRouterStrategy());
         $spec = $specBuilder->generateSpec($app);
@@ -111,7 +112,7 @@ class StubPathVisitor implements PathVisitorInterface
         return [];
     }
 
-    public function getNewResources(): array
+    public function getResources(): array
     {
         return [];
     }

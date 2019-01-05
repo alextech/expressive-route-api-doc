@@ -3,6 +3,7 @@
 namespace RouteOpenApiDoc\PathVisitor;
 
 use RouteOpenApiDoc\OpenApiPath;
+use RouteOpenApiDoc\Resource;
 
 class PostVisitor extends AbstractVisitor implements PathVisitorInterface
 {
@@ -18,7 +19,7 @@ class PostVisitor extends AbstractVisitor implements PathVisitorInterface
 
     public function suggestRequestBody(OpenApiPath $path): array
     {
-        $this->newResources[] = 'New'.$path->getRelatedResource();
+        $this->resources[] = new Resource('New'.$path->getRelatedResource(), true);
 
         return [
             'description' => $path->getRelatedResource() . ' to add to the collection',

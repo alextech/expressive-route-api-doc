@@ -16,9 +16,8 @@ class SpecBuilder
      */
     private $routerStrategy;
 
+    /** @var Resource[] */
     private $resources = [];
-
-    private $newResources = [];
 
     private $visitors;
 
@@ -112,17 +111,11 @@ class SpecBuilder
                     $methodApi['requestBody'] = $requestBody;
                 }
 
-                if (! $openApiPath->isCollection()) {
-                    $this->resources[] = $openApiPath->getSchemaName();
-                } else {
-                    $this->resources[] = $openApiPath->getRelatedResource();
-                }
-
                 $methodApi['responses'] = $visitor->suggestResponses($openApiPath);
 
                 $paths[(string)$openApiPath][$method] = $methodApi;
 
-                $this->newResources = array_merge($this->newResources, $visitor->getNewResources());
+                $this->resources = array_merge($this->resources, $visitor->getResources());
             }
 
         }
@@ -134,34 +127,7 @@ class SpecBuilder
         $schemas = [];
 
         foreach ($this->resources as $resource) {
-            $schemas[$resource] = [
-                'required' => [
-                    'id',
-                    'name'
-                ],
-                'properties' => [
-                    'id' => [
-                        'type' => 'string',
-                        'format' => 'uuid',
-                    ],
-                    'name' => [
-                        'type' => 'string',
-                    ],
-                ],
-            ];
-        }
-
-        foreach ($this->newResources as $resource) {
-            $schemas[$resource] = [
-                'required' => [
-                    'name'
-                ],
-                'properties' => [
-                    'name' => [
-                        'type' => 'string',
-                    ],
-                ],
-            ];
+            $schemas[$resource->getName()] = $resource->getSchemaTemplate();
         }
 
         $schemas['Error'] = [

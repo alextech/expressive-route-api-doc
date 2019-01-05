@@ -3,6 +3,7 @@
 namespace RouteOpenApiDoc\PathVisitor;
 
 use RouteOpenApiDoc\OpenApiPath;
+use RouteOpenApiDoc\Resource;
 
 class PutVisitor extends AbstractVisitor implements PathVisitorInterface
 {
@@ -32,6 +33,8 @@ class PutVisitor extends AbstractVisitor implements PathVisitorInterface
 
     public function suggestRequestBody(OpenApiPath $path): array
     {
+        $this->resources[] = new Resource('New'.$path->getSchemaName(), true);
+
         return [
             'description' => $path->getSchemaName() . ' to update',
             'required' => true,

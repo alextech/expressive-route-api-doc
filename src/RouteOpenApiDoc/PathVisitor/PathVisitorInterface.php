@@ -13,5 +13,5 @@ interface PathVisitorInterface
     public function suggestRequestBody(OpenApiPath $path) : array;
     public function suggestResponses(OpenApiPath $path) : array;
 
-    public function getNewResources() : array;
+    public function getResources() : array;
 }
