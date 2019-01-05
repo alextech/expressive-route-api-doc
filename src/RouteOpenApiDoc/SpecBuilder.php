@@ -61,6 +61,11 @@ class SpecBuilder
         ];
     }
 
+    public function setHttpMethodStrategy(string $method, string $strategy) : void
+    {
+        $this->visitors[$method] = $strategy;
+    }
+
     /**
      * @param \Zend\Expressive\Application $app
      *
@@ -79,6 +84,11 @@ class SpecBuilder
 
             foreach ($route->getAllowedMethods() as $method) {
                 $method = strtolower($method);
+
+                if (! array_key_exists($method, $this->visitors)) {
+                    continue;
+                }
+
                 /** @var PathVisitorInterface $visitor */
                 $visitor = new $this->visitors[$method];
 

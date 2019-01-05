@@ -41,6 +41,7 @@ class SpecBuilderTest extends TestCase
         $app->route('/pets/:petId', [], ['GET']);
         $app->put('/pets/:petId', []);
         $app->get('/no_single', []);
+        $app->route('/pets', [], ['OPTIONS']);
 
         $specWriter = new SpecBuilder(new ZendRouterStrategy());
         $spec = $specWriter->generateSpec($app);
