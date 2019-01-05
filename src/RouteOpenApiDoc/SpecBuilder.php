@@ -29,17 +29,17 @@ class SpecBuilder
     public function __construct(RouterStrategyInterface $param)
     {
         $this->routerStrategy = $param;
-    }
 
-    public function generateSpec(\Zend\Expressive\Application $app) : array
-    {
         $this->visitors = [
             'get' => GetVisitor::class,
             'post' => PostVisitor::class,
             'put' => PutVisitor::class,
             'delete' => DeleteVisitor::class,
         ];
+    }
 
+    public function generateSpec(\Zend\Expressive\Application $app) : array
+    {
         return [
             'openapi' => '3.0.2',
             'info'=> [
@@ -61,8 +61,9 @@ class SpecBuilder
         ];
     }
 
-    public function setHttpMethodStrategy(string $method, string $strategy) : void
+    public function setHttpMethodVisitor(string $method, string $strategy) : void
     {
+        $method = strtolower($method);
         $this->visitors[$method] = $strategy;
     }
 
