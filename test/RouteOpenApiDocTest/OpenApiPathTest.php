@@ -5,7 +5,7 @@ namespace RouteOpenApiDocTest;
 use PHPUnit\Framework\TestCase;
 use RouteOpenApiDoc\OpenApiPath;
 
-class PathTest extends TestCase
+class OpenApiPathTest extends TestCase
 {
 
     /** @dataProvider pathDataProvider
