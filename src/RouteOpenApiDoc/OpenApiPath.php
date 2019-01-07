@@ -69,7 +69,7 @@ class OpenApiPath
 
     public function getParameters() : array
     {
-        preg_match_all('$(?<=/\{)([^}]*)$', $this->path, $paramMatches);
+        preg_match_all('@(?<=/\{)([^}]*)@', $this->path, $paramMatches);
 
         return $paramMatches[0];
     }
@@ -99,6 +99,13 @@ class OpenApiPath
         }
 
         return $this->relatedResource;
+    }
+
+    public function getTag() : string
+    {
+        preg_match('@/(.*?)(/|$)@', $this->path, $tagMatches);
+
+        return $tagMatches[1];
     }
 
     public function __toString() : string

@@ -191,7 +191,7 @@
         "summary": "List all nosingle",
         "operationId": "listNoSingle",
         "tags": [
-          "nosingle"
+          "no_single"
         ],
         "parameters": [
           {
@@ -227,7 +227,7 @@
         "summary": "Update specified PutNoPost",
         "operationId": "updatePutNoPost",
         "tags": [
-          "putnopost"
+          "put_no_post"
         ],
         "parameters": [
           {

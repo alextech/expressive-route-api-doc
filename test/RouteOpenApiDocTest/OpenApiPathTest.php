@@ -47,6 +47,17 @@ class OpenApiPathTest extends TestCase
         self::assertEquals($isCollection, $path->isCollection());
     }
 
+    /**
+     * @dataProvider pathDataProvider
+     * @param $routePath
+     */
+    public function testGetTag($routePath) : void
+    {
+        $path = new OpenApiPath($routePath);
+
+        self::assertEquals('pets', $path->getTag());
+    }
+
     public function pathDataProvider() : array
     {
         return [

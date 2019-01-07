@@ -18,7 +18,7 @@
         "summary": "Info for a specific resource",
         "operationId": "showResourceByResource_id",
         "tags": [
-          "resources"
+          "api"
         ],
         "parameters": [
           {

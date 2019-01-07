@@ -97,7 +97,7 @@ class SpecBuilder
                     'summary' => $visitor->getSummary($openApiPath),
                     'operationId' => $visitor->generateOperationId($openApiPath),
                     'tags' => [
-                        strtolower($openApiPath->getRelatedCollection()),
+                        strtolower($openApiPath->getTag()),
                     ],
                 ];
 
