@@ -3,6 +3,7 @@
 namespace RouteOpenApiDoc;
 
 use RouteOpenApiDoc\RouterStrategy\RouterStrategyInterface;
+use Zend\Expressive\Router\RouteCollector;
 
 class OpenApiWriter
 {
@@ -20,15 +21,22 @@ class OpenApiWriter
         $this->specBuilder = new SpecBuilder($routerStrategy);
     }
 
-    // TODO option to write schemas to one file or multiple. One file would not need to write to a directory
+
+    public function addApplication(\Zend\Expressive\Application $app) : void
+    {
+        $this->specBuilder->addApplication($app);
+    }
+
+    public function addRouteCollector(RouteCollector $routeCollector) : void
+    {
+        $this->specBuilder->addRouteCollector($routeCollector);
+    }
 
     /**
-     * @param \Zend\Expressive\Application $app
      * @param bool $singleFile
      * @throws \Exception
      */
     public function writeSpec(
-        \Zend\Expressive\Application $app,
         bool $singleFile = false
     ) : void
     {
@@ -36,7 +44,7 @@ class OpenApiWriter
             throw new \Exception('Cannot create OpenApi spec: output directory is not set.');
         }
 
-        $spec = $this->specBuilder->generateSpec($app);
+        $spec = $this->specBuilder->generateSpec();
 
         if ($singleFile) {
             $this->writeDoc($this->directory . $this->docFileName, $spec);

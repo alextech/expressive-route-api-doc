@@ -8,6 +8,9 @@ use RouteOpenApiDoc\PathVisitor\PathVisitorInterface;
 use RouteOpenApiDoc\PathVisitor\PostVisitor;
 use RouteOpenApiDoc\PathVisitor\PutVisitor;
 use RouteOpenApiDoc\RouterStrategy\RouterStrategyInterface;
+use Zend\Expressive\Application;
+use Zend\Expressive\Router\Route;
+use Zend\Expressive\Router\RouteCollector;
 
 class SpecBuilder
 {
@@ -20,6 +23,9 @@ class SpecBuilder
     private $resources = [];
 
     private $visitors;
+
+    /** @var Route[] */
+    private $routes = [];
 
     /**
      * OpenApiWriter constructor.
@@ -37,7 +43,17 @@ class SpecBuilder
         ];
     }
 
-    public function generateSpec(\Zend\Expressive\Application $app) : array
+    public function addApplication(Application $app) : void
+    {
+        $this->routes = array_merge($this->routes, $app->getRoutes());
+    }
+
+    public function addRouteCollector(RouteCollector $routeCollector) : void
+    {
+        $this->routes = array_merge($this->routes, $routeCollector->getRoutes());
+    }
+
+    public function generateSpec() : array
     {
         return [
             'openapi' => '3.0.2',
@@ -53,7 +69,7 @@ class SpecBuilder
                     'url' => ''
                 ]
             ],
-            'paths' => $this->getApiPaths($app),
+            'paths' => $this->getApiPaths(),
             'components' => [
                 'schemas' => $this->getSchemas(),
             ]
@@ -71,12 +87,10 @@ class SpecBuilder
      *
      * @return array
      */
-    private function getApiPaths(\Zend\Expressive\Application $app): array
+    private function getApiPaths(): array
     {
-        $routes = $app->getRoutes();
-
         $paths = [];
-        foreach ($routes as $route) {
+        foreach ($this->routes as $route) {
 
             $openApiPath = new OpenApiPath(
                 $this->routerStrategy->applyOpenApiPlaceholders($route)

@@ -65,7 +65,8 @@ class OpenApiWriterTest extends TestCase
     {
         $writer = new OpenApiWriter(new ZendRouterStrategy());
         $writer->setOutputDirectory($this->testSpecDir);
-        $writer->writeSpec($this->app);
+        $writer->addApplication($this->app);
+        $writer->writeSpec();
 
         self::assertFileExists($this->docFile);
     }
@@ -77,7 +78,8 @@ class OpenApiWriterTest extends TestCase
     {
         $writer = new OpenApiWriter(new ZendRouterStrategy());
         $writer->setOutputDirectory($this->testSpecDir);
-        $writer->writeSpec($this->app);
+        $writer->addApplication($this->app);
+        $writer->writeSpec();
 
         $specArray = json_decode(file_get_contents($this->docFile), true);
 
@@ -93,7 +95,7 @@ class OpenApiWriterTest extends TestCase
 
         file_put_contents($this->docFile, $modifiedSpec);
 
-        $writer->writeSpec($this->app);
+        $writer->writeSpec();
 
         self::assertJsonStringEqualsJsonFile($this->docFile, $modifiedSpec);
     }
@@ -105,7 +107,8 @@ class OpenApiWriterTest extends TestCase
     {
         // setup
         $specBuilder = new SpecBuilder(new ZendRouterStrategy());
-        $specArray = $specBuilder->generateSpec($this->app);
+        $specBuilder->addApplication($this->app);
+        $specArray = $specBuilder->generateSpec();
 
         $specArray['paths']['/api/resources/{resource_id}']
             ['get']['summary'] = 'path get modified by test runner';
@@ -129,9 +132,11 @@ class OpenApiWriterTest extends TestCase
 
         $writer = new OpenApiWriter(new ZendRouterStrategy());
         $writer->setOutputDirectory($this->testSpecDir);
-        $writer->writeSpec($this->app, true);
+        $writer->addApplication($this->app);
+        $writer->writeSpec(true);
 
-        $specArray = $specBuilder->generateSpec($this->app);
+        $specBuilder->addApplication($this->app);
+        $specArray = $specBuilder->generateSpec();
         $specArray['paths']['/api/resources/{resource_id}']
             ['get']['summary'] = 'path get modified by test runner';
         $specArray['paths']['/api/resources/{resource_id}']
@@ -153,7 +158,8 @@ class OpenApiWriterTest extends TestCase
     {
         $writer = new OpenApiWriter(new ZendRouterStrategy());
         $writer->setOutputDirectory($this->testSpecDir);
-        $writer->writeSpec($this->app, false);
+        $writer->addApplication($this->app);
+        $writer->writeSpec(false);
 
         self::assertFileExists($this->docFile);
         self::assertFileExists($this->testSpecDir.'/resource.json');
@@ -168,7 +174,8 @@ class OpenApiWriterTest extends TestCase
     {
         $writer = new OpenApiWriter(new ZendRouterStrategy());
         $writer->setOutputDirectory($this->testSpecDir);
-        $writer->writeSpec($this->app);
+        $writer->addApplication($this->app);
+        $writer->writeSpec();
 
 
         $schemaArray = json_decode(file_get_contents($this->testSpecDir . '/resource.json'), true);
@@ -182,7 +189,7 @@ class OpenApiWriterTest extends TestCase
         file_put_contents($this->testSpecDir . '/resource.json', $modifiedSchema);
 
         // execute
-        $writer->writeSpec($this->app);
+        $writer->writeSpec();
 
         // verify
         self::assertJsonStringEqualsJsonFile($this->testSpecDir . '/resource.json', $modifiedSchema);
@@ -196,7 +203,27 @@ class OpenApiWriterTest extends TestCase
         $writer = new OpenApiWriter(new ZendRouterStrategy());
         $this->expectException(\Exception::class);
 
-        $writer->writeSpec($this->app);
+        $writer->addApplication($this->app);
+        $writer->writeSpec();
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function testMultipleRoutes() : void
+    {
+        $routes = new RouteCollector($this->prophesize(RouterInterface::class)->reveal());
+        $routes->get('/second_router', $this->createMockMiddleware());
+
+        $writer = new OpenApiWriter(new ZendRouterStrategy());
+        $writer->addApplication($this->app);
+        $writer->addRouteCollector($routes);
+        $writer->setOutputDirectory($this->testSpecDir);
+        $writer->writeSpec();
+
+        $spec = json_decode(file_get_contents($this->testSpecDir . '/'.self::SPEC_FILE_NAME), true);
+        self::assertArrayHasKey('/api/resources/{resource_id}', $spec['paths']);
+        self::assertArrayHasKey('/second_router', $spec['paths']);
     }
 
     public function createMockMiddleware() : MiddlewareInterface

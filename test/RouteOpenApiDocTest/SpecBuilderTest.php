@@ -32,7 +32,8 @@ class SpecBuilderTest extends TestCase
         $app->put('/put_no_post/:id', []);
 
         $specBuilder = new SpecBuilder(new ZendRouterStrategy());
-        $spec = $specBuilder->generateSpec($app);
+        $specBuilder->addApplication($app);
+        $spec = $specBuilder->generateSpec();
         $spec = json_encode($spec);
 
         self::assertJsonStringEqualsJsonFile(__DIR__ . '/expectedCombinedSpec.json', $spec);
@@ -47,7 +48,8 @@ class SpecBuilderTest extends TestCase
         $app = $this->createApp();
         $app->route('/path', [], ['mockVerb']);
 
-        $spec = $specBuilder->generateSpec($app);
+        $specBuilder->addApplication($app);
+        $spec = $specBuilder->generateSpec();
 
         self::assertArrayHasKey('mockverb', $spec['paths']['/path']);
 

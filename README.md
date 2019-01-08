@@ -17,7 +17,9 @@ which behaves too CRUD-y, and may not be compatible with existing codebase.
 
 ## Usage
 In your router configuration function, get an instance of `OpenApiWriter` service. 
-Call `writeSpec` with instance of application that has the routes needing to be documented.
+Add instance of `Application` or `RouteCollector` (if defining routes in multiple configurations 
+using [path segregated piplines](https://docs.zendframework.com/zend-expressive/v3/cookbook/path-segregated-routing/),
+that has the routes needing to be documented, and call `writeSpec`.
 
 ```php
 use RouteApiDoc\RouterStrategy\RouterStrategyInterface;
@@ -28,6 +30,7 @@ return function (Application $app, MiddlewareFactory $factory, ContainerInterfac
     $app->post('/api/resources', []);
     
     $apiWriter = $container->get(OpenApiWriter::class);
+    $appWriter->addApplication($app);
     $apiWriter->writeSpec($app);
 }
 ```
@@ -38,7 +41,7 @@ If you made changes to the generated file, as you most likely will since this is
 and rerun the writer, changes will be merged.
 
 By default, each guessed resource will be written to its own json schema file. 
-If prefer to have all schemas as part of one single document, pass `true` as second parameter
+If prefer to have all schemas as part of one single document, pass `true` as a parameter
 of `writeSpec()`.
 
 > Since the generation of documents is a development task, and will slow down requests,
