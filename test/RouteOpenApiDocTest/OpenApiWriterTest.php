@@ -113,6 +113,11 @@ class OpenApiWriterTest extends TestCase
             ['get']['responses']
                 [200]['description'] = 'Response description modified by test runner';
 
+        // emulate rename/remove properties in document editing
+        $specArray['components']['schemas']['Resource']['required'][0] = 'resource_id';
+        unset($specArray['components']['schemas']['Resource']['properties']['id']);
+        $specArray['components']['schemas']['Resource']['properties']['resource_id'] = ['type'=>'string'];
+
         $modifiedSpec = json_encode($specArray,
             JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT
         );
@@ -126,7 +131,6 @@ class OpenApiWriterTest extends TestCase
         $writer->setOutputDirectory($this->testSpecDir);
         $writer->writeSpec($this->app, true);
 
-        $specBuilder = new SpecBuilder(new ZendRouterStrategy());
         $specArray = $specBuilder->generateSpec($this->app);
         $specArray['paths']['/api/resources/{resource_id}']
             ['get']['summary'] = 'path get modified by test runner';
@@ -134,7 +138,11 @@ class OpenApiWriterTest extends TestCase
             ['get']['responses']
                 [200]['description'] = 'Response description modified by test runner';
 
-        // verify
+        $specArray['components']['schemas']['Resource']['required'][0] = 'resource_id';
+        unset($specArray['components']['schemas']['Resource']['properties']['id']);
+        $specArray['components']['schemas']['Resource']['properties']['resource_id'] = ['type'=>'string'];
+
+        // verify // expected vs actual had to be intentionally reversed
         self::assertJsonStringEqualsJsonFile($this->docFile, json_encode($specArray, JSON_UNESCAPED_SLASHES));
     }
 

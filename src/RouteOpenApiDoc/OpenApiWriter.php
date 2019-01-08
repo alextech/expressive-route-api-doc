@@ -59,15 +59,15 @@ class OpenApiWriter
 
         if (file_exists($file)) {
             $existingSpec = json_decode(file_get_contents($file), true);
-            $spec = self::array_merge_recursive_distinct($spec, $existingSpec);
+            $existingSpec['paths']
+                = array_merge($spec['paths'], $existingSpec['paths']);
+            $existingSpec['components']['schemas']
+                = array_merge($spec['components']['schemas'], $existingSpec['components']['schemas']);
+
+            $spec = $existingSpec;
         }
 
-        $result = file_put_contents($file, json_encode($spec, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-
-
-        if ($result === false) {
-            throw new \RuntimeException('Problem writing route spec to file "'.$file.'" ');
-        }
+        $this->writeSpecToFile($file, $spec);
     }
 
     private function writeDocAndSchemas(string $directory, array $spec) : void
@@ -81,54 +81,23 @@ class OpenApiWriter
                 '$ref' => $fileName . '#/' . $schemaName,
             ];
 
-            $this->writeDoc($directory . '/' . $fileName, [$schemaName => $schema]);
+            if (file_exists($fileName)) {
+                continue;
+            }
+
+            $this->writeSpecToFile($directory . '/' . $fileName, [$schemaName => $schema]);
         }
 
         $this->writeDoc($directory . $this->docFileName, $spec);
     }
 
-    /**
-     * array_merge_recursive does indeed merge arrays, but it converts values with duplicate
-     * keys to arrays rather than overwriting the value in the first array with the duplicate
-     * value in the second array, as array_merge does. I.e., with array_merge_recursive,
-     * this happens (documented behavior):
-     *
-     * array_merge_recursive(array('key' => 'org value'), array('key' => 'new value'));
-     *     => array('key' => array('org value', 'new value'));
-     *
-     * array_merge_recursive_distinct does not change the datatypes of the values in the arrays.
-     * Matching keys' values in the second array overwrite those in the first array, as is the
-     * case with array_merge, i.e.:
-     *
-     * array_merge_recursive_distinct(array('key' => 'org value'), array('key' => 'new value'));
-     *     => array('key' => array('new value'));
-     *
-     * Parameters are passed by reference, though only for performance reasons. They're not
-     * altered by this function.
-     *
-     * @param array $array1
-     * @param array $array2
-     * @return array
-     * @author Daniel <daniel (at) danielsmedegaardbuus (dot) dk>
-     * @author Gabriel Sobrinho <gabriel (dot) sobrinho (at) gmail (dot) com>
-     */
-    private static function array_merge_recursive_distinct ( array &$array1, array &$array2 )
+    private function writeSpecToFile(string $file, array $spec) : void
     {
-        $merged = $array1;
+        $result = file_put_contents($file, json_encode($spec, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 
-        foreach ( $array2 as $key => &$value )
-        {
-            if ( is_array ( $value ) && isset ( $merged [$key] ) && is_array ( $merged [$key] ) )
-            {
-                $merged [$key] = self::array_merge_recursive_distinct ( $merged [$key], $value );
-            }
-            else
-            {
-                $merged [$key] = $value;
-            }
+
+        if ($result === false) {
+            throw new \RuntimeException('Problem writing route spec to file "'.$file.'" ');
         }
-
-        return $merged;
     }
-
 }
