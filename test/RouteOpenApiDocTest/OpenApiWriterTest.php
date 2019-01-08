@@ -164,6 +164,33 @@ class OpenApiWriterTest extends TestCase
     /**
      * @throws \Exception
      */
+    public function testMergeLeavesModifiedSchemaFiles() : void
+    {
+        $writer = new OpenApiWriter(new ZendRouterStrategy());
+        $writer->setOutputDirectory($this->testSpecDir);
+        $writer->writeSpec($this->app);
+
+
+        $schemaArray = json_decode(file_get_contents($this->testSpecDir . '/resource.json'), true);
+        $schemaArray['Resource']['required'][0] = 'resource_id';
+        unset($schemaArray['Resource']['properties']['id']);
+        $schemaArray['Resource']['properties']['resource_id'] = ['type' => 'string'];
+
+        $modifiedSchema = json_encode($schemaArray,
+            JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT
+        );
+        file_put_contents($this->testSpecDir . '/resource.json', $modifiedSchema);
+
+        // execute
+        $writer->writeSpec($this->app);
+
+        // verify
+        self::assertJsonStringEqualsJsonFile($this->testSpecDir . '/resource.json', $modifiedSchema);
+    }
+
+    /**
+     * @throws \Exception
+     */
     public function testThrowExceptionNoDirectorySet() : void
     {
         $writer = new OpenApiWriter(new ZendRouterStrategy());

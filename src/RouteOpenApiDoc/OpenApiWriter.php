@@ -81,7 +81,7 @@ class OpenApiWriter
                 '$ref' => $fileName . '#/' . $schemaName,
             ];
 
-            if (file_exists($fileName)) {
+            if (file_exists($directory . '/' . $fileName)) {
                 continue;
             }
 
