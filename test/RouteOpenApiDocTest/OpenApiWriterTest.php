@@ -226,6 +226,25 @@ class OpenApiWriterTest extends TestCase
         self::assertArrayHasKey('/second_router', $spec['paths']);
     }
 
+    /**
+     * @throws \Exception
+     */
+    public function testBasePath() : void
+    {
+        $routes = new RouteCollector($this->prophesize(RouterInterface::class)->reveal());
+        $routes->get('/second_router', $this->createMockMiddleware());
+
+        $writer = new OpenApiWriter(new ZendRouterStrategy());
+        $writer->addApplication($this->app, '/basePath');
+        $writer->addRouteCollector($routes, '/basePath');
+        $writer->setOutputDirectory($this->testSpecDir);
+        $writer->writeSpec();
+
+        $spec = json_decode(file_get_contents($this->testSpecDir . '/'.self::SPEC_FILE_NAME), true);
+        self::assertArrayHasKey('/basePath/api/resources/{resource_id}', $spec['paths']);
+        self::assertArrayNotHasKey('/api/resources/{resource_id}', $spec['paths']);
+    }
+
     public function createMockMiddleware() : MiddlewareInterface
     {
         return $this->prophesize(MiddlewareInterface::class)->reveal();

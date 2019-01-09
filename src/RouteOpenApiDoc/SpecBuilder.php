@@ -24,8 +24,9 @@ class SpecBuilder
 
     private $visitors;
 
-    /** @var Route[] */
-    private $routes = [];
+    /** @var Route[][] */
+    private $routes = ['/' => []];
+
 
     /**
      * OpenApiWriter constructor.
@@ -43,14 +44,22 @@ class SpecBuilder
         ];
     }
 
-    public function addApplication(Application $app) : void
+    public function addApplication(Application $app, string $basePath = '') : void
     {
-        $this->routes = array_merge($this->routes, $app->getRoutes());
+        $this->addRoutes($app->getRoutes(), $basePath);
     }
 
-    public function addRouteCollector(RouteCollector $routeCollector) : void
+    public function addRouteCollector(RouteCollector $routeCollector, string $basePath = '') : void
     {
-        $this->routes = array_merge($this->routes, $routeCollector->getRoutes());
+        $this->addRoutes($routeCollector->getRoutes(), $basePath);
+    }
+
+    private function addRoutes(array $routes, string $basePath) : void
+    {
+        if (! array_key_exists($basePath, $this->routes)) {
+            $this->routes[$basePath] = [];
+        }
+        $this->routes[$basePath] = array_merge($this->routes[$basePath], $routes);
     }
 
     public function generateSpec() : array
@@ -90,48 +99,50 @@ class SpecBuilder
     private function getApiPaths(): array
     {
         $paths = [];
-        foreach ($this->routes as $route) {
+        foreach ($this->routes as $basePath => $routes) {
+            foreach ($routes as $route) {
 
-            $openApiPath = new OpenApiPath(
-                $this->routerStrategy->applyOpenApiPlaceholders($route)
-            );
+                $openApiPath = new OpenApiPath(
+                    $basePath . $this->routerStrategy->applyOpenApiPlaceholders($route)
+                );
 
-            foreach ($route->getAllowedMethods() as $method) {
-                $method = strtolower($method);
+                foreach ($route->getAllowedMethods() as $method) {
+                    $method = strtolower($method);
 
-                if (! array_key_exists($method, $this->visitors)) {
-                    continue;
+                    if (! array_key_exists($method, $this->visitors)) {
+                        continue;
+                    }
+
+                    /** @var PathVisitorInterface $visitor */
+                    $visitor = new $this->visitors[$method];
+
+
+                    $methodApi = [
+                        'summary' => $visitor->getSummary($openApiPath),
+                        'operationId' => $visitor->generateOperationId($openApiPath),
+                        'tags' => [
+                            strtolower($openApiPath->getTag()),
+                        ],
+                    ];
+
+                    $parameters = $visitor->getParameters($openApiPath);
+                    if (count($parameters) > 0) {
+                        $methodApi['parameters'] = $parameters;
+                    }
+
+                    $requestBody = $visitor->suggestRequestBody($openApiPath);
+                    if (count($requestBody) > 0) {
+                        $methodApi['requestBody'] = $requestBody;
+                    }
+
+                    $methodApi['responses'] = $visitor->suggestResponses($openApiPath);
+
+                    $paths[(string)$openApiPath][$method] = $methodApi;
+
+                    $this->resources = array_merge($this->resources, $visitor->getResources());
                 }
 
-                /** @var PathVisitorInterface $visitor */
-                $visitor = new $this->visitors[$method];
-
-
-                $methodApi = [
-                    'summary' => $visitor->getSummary($openApiPath),
-                    'operationId' => $visitor->generateOperationId($openApiPath),
-                    'tags' => [
-                        strtolower($openApiPath->getTag()),
-                    ],
-                ];
-
-                $parameters = $visitor->getParameters($openApiPath);
-                if (count($parameters) > 0) {
-                    $methodApi['parameters'] = $parameters;
-                }
-
-                $requestBody = $visitor->suggestRequestBody($openApiPath);
-                if (count($requestBody) > 0) {
-                    $methodApi['requestBody'] = $requestBody;
-                }
-
-                $methodApi['responses'] = $visitor->suggestResponses($openApiPath);
-
-                $paths[(string)$openApiPath][$method] = $methodApi;
-
-                $this->resources = array_merge($this->resources, $visitor->getResources());
             }
-
         }
         return $paths;
     }

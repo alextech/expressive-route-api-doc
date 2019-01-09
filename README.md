@@ -48,6 +48,14 @@ of `writeSpec()`.
 > it is recommended to have the above lines conditional only for development mode.
 
 
+#### Base path
+
+If you are adding multiple route containers using `$apiWriter->addRouteCollector()` or `$apiWriter->addApplication()`,
+chances are you are using _path segregated pipelines_ technique to organize your routes. In this case, 
+you will need to let the api writer know about the pipeline basepath because is not exposed by expressive to the route 
+collection. Specify it as a second parameter of the `add` functions. Base path will also become a tag for all the routes
+starting from that path.
+
 ## Configuration
 Configuration is read from `openapi_writer` key of your application config. It is expected
 to have these options:

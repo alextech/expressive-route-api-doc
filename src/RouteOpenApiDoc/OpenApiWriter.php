@@ -22,14 +22,14 @@ class OpenApiWriter
     }
 
 
-    public function addApplication(\Zend\Expressive\Application $app) : void
+    public function addApplication(\Zend\Expressive\Application $app, $basePath = '') : void
     {
-        $this->specBuilder->addApplication($app);
+        $this->specBuilder->addApplication($app, $basePath);
     }
 
-    public function addRouteCollector(RouteCollector $routeCollector) : void
+    public function addRouteCollector(RouteCollector $routeCollector, $basePath = '') : void
     {
-        $this->specBuilder->addRouteCollector($routeCollector);
+        $this->specBuilder->addRouteCollector($routeCollector, $basePath);
     }
 
     /**
