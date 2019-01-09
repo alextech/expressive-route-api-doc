@@ -7,6 +7,13 @@ use RouteOpenApiDoc\Resource;
 
 class ResourceTest extends TestCase
 {
+    public function testInstance() : void
+    {
+        $resource = new Resource('name', true);
+        self::assertTrue($resource->isNew());
+        self::assertEquals('name', $resource->getName());
+    }
+
     public function testExistingResourceTemplateHasId() : void
     {
         $resource = new Resource('name', false);

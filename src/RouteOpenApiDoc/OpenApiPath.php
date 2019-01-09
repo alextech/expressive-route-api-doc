@@ -40,7 +40,7 @@ class OpenApiPath
 
             $this->relatedCollection = $resource = Inflector\Inflector::classify($resource);
 
-            $resource = Inflector\Inflector::singularize($resource);
+            $this->relatedResource = $resource = Inflector\Inflector::singularize($resource);
 
             $this->isCollection = false;
         } else {
